@@ -31,7 +31,7 @@ jobs:
             rust-targets: ""
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Linux system dependencies
         if: runner.os == 'Linux'
         run: |
