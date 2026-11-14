@@ -20,6 +20,13 @@
 ## Quick start
 
 1. **Install** PDFnotator from the [latest release](../../releases/latest) and [Typst](https://github.com/typst/typst#installation).
+
+   ```sh
+   # macOS (Homebrew)
+   brew install --cask oberbichler/tap/pdfnotator
+   brew install typst
+   ```
+
 2. **Connect your agent once** — click the agent chip in the title bar and copy the config, or:
 
    ```sh
