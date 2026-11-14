@@ -17,8 +17,6 @@
 
 ![PDFnotator in action: comment on the PDF, the agent edits the Typst source, the PDF updates by itself](docs/demo.gif)
 
-<p align="center"><sub>A real session: the scripted agent (<code>scripts/demo-agent.py</code>) edits the <code>.typ</code> file, pdfnotator recompiles and reloads. <a href="docs/demo.mp4">MP4 version</a></sub></p>
-
 ## Quick start
 
 1. **Install** PDFnotator from the [latest release](../../releases/latest) and [Typst](https://github.com/typst/typst#installation).
