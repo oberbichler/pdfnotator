@@ -52,7 +52,7 @@ Several agents can work on several documents at once — each gets its own tab.
 | ------------ | ------------------------------- |
 | Select text  | Comment (`⇥`: replace · delete) |
 | `R`          | Area screenshot                 |
-| `D`          | Draw (`⇥`: freehand · arrow · rectangle), then type |
+| `D`          | Draw, then type (`⇥`: shape)    |
 | `/`          | Message to the agent            |
 | `⌘F`         | Find in document                |
 | `⌥⌘S`        | Pages & outline sidebar         |

@@ -60,6 +60,11 @@ COST_TABLE = """#table(
 )
 Faster releases and on-demand scaling are not included and are expected to be the larger benefit."""
 
+RISKS = """= Risks
+The main risk is the database migration in phase 3. We mitigate it with a
+replicated read model that runs in parallel for four weeks before the switch.
+"""
+
 # 1 · text comment → add a footnote
 first = wait_for_comment()
 time.sleep(1.4)  # "thinking"
@@ -73,6 +78,14 @@ time.sleep(1.4)
 edit(COSTS, COST_TABLE)
 time.sleep(1.2)
 call("reply", message="Turned the cost figures into a table.", resolved_ids=[second])
+
+# 3 · sketch: loop around "Risks" with an arrow up to the costs → move the section
+third = wait_for_comment()
+time.sleep(1.4)
+edit(RISKS, "")
+edit("= Costs and benefits", RISKS.strip() + "\n\n= Costs and benefits")
+time.sleep(1.2)
+call("reply", message="Moved the risks section before the costs.", resolved_ids=[third])
 
 # back to listening, like a real agent loop; the recorder stops shortly after
 open(DONE, "w").close()

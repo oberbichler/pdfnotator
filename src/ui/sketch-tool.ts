@@ -11,6 +11,7 @@ import {
   extendShape,
   isAccidental,
   type PageSize,
+  type Point,
   SHAPE_TYPES,
   type Shape,
   type ShapeType,
@@ -116,9 +117,41 @@ function redraw(): void {
   }
 }
 
+/** Start a shape at normalised point `p` (also used by the demo). */
+export function beginShape(pv: PageView, p: Point): void {
+  closeComposer(); // keeps the sketch: keep drawing, type again to comment
+  if (pending && (pending.pv !== pv || !pending.layer.isConnected)) clearSketch();
+  if (!pending) {
+    const layer = sketchSvg([], pageSize(pv), "sketch-layer");
+    const hint = h("div", "sketch-hint", t("sketch.hint"));
+    hint.hidden = true;
+    pv.overlay.append(layer, hint);
+    pending = { pv, shapes: [], layer, hint };
+  }
+  current = { type: state.shape, points: [p] };
+  pending.shapes.push(current);
+  redraw();
+}
+
+export function extendCurrent(p: Point): void {
+  if (!current || !pending) return;
+  extendShape(current, p, pageSize(pending.pv));
+  redraw();
+}
+
+/** Finish the shape being drawn; `cancel` drops it. */
+export function endShape(cancel = false): void {
+  if (!current || !pending) return;
+  const shape = current;
+  current = null;
+  if (cancel || isAccidental(shape, pageSize(pending.pv))) pending.shapes.pop();
+  if (pending.shapes.length) redraw();
+  else clearSketch();
+}
+
 export function attachSketchTool(pv: PageView): void {
   const overlay = pv.overlay;
-  const toPage = (e: PointerEvent): [number, number] => {
+  const toPage = (e: PointerEvent): Point => {
     const r = pv.el.getBoundingClientRect();
     return [clamp((e.clientX - r.left) / r.width, 0, 1), clamp((e.clientY - r.top) / r.height, 0, 1)];
   };
@@ -126,37 +159,12 @@ export function attachSketchTool(pv: PageView): void {
   overlay.addEventListener("pointerdown", (e) => {
     if (state.tool !== "draw" || e.button !== 0) return;
     e.preventDefault();
-    closeComposer(); // keeps the sketch: keep drawing, type again to comment
-    if (pending && (pending.pv !== pv || !pending.layer.isConnected)) clearSketch();
-    if (!pending) {
-      const layer = sketchSvg([], pageSize(pv), "sketch-layer");
-      const hint = h("div", "sketch-hint", t("sketch.hint"));
-      hint.hidden = true;
-      overlay.append(layer, hint);
-      pending = { pv, shapes: [], layer, hint };
-    }
     overlay.setPointerCapture(e.pointerId);
-    current = { type: state.shape, points: [toPage(e)] };
-    pending.shapes.push(current);
-    redraw();
+    beginShape(pv, toPage(e));
   });
-
-  overlay.addEventListener("pointermove", (e) => {
-    if (!current || !pending) return;
-    extendShape(current, toPage(e), pageSize(pv));
-    redraw();
-  });
-
-  const finish = (e: PointerEvent) => {
-    if (!current || !pending) return;
-    const shape = current;
-    current = null;
-    if (e.type === "pointercancel" || isAccidental(shape, pageSize(pv))) pending.shapes.pop();
-    if (pending.shapes.length) redraw();
-    else clearSketch();
-  };
-  overlay.addEventListener("pointerup", finish);
-  overlay.addEventListener("pointercancel", finish);
+  overlay.addEventListener("pointermove", (e) => extendCurrent(toPage(e)));
+  overlay.addEventListener("pointerup", () => endShape());
+  overlay.addEventListener("pointercancel", () => endShape(true));
 }
 
 /** Open the composer for the pending sketch. Returns false if there is none. */

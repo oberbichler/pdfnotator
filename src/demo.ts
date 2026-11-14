@@ -15,7 +15,8 @@ import { setTool } from "./ui/dock";
 import { autoGrow, byId, h } from "./ui/dom";
 import { placeRect } from "./ui/marks";
 import { selectionAction } from "./ui/selection";
-import type { NRect, Viewer } from "./viewer";
+import { beginShape, commentSketch, endShape, extendCurrent, setShape } from "./ui/sketch-tool";
+import type { NRect, PageView, Viewer } from "./viewer";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -202,6 +203,87 @@ async function dragArea(viewer: Viewer, pointer: Pointer, fromText: string, toTe
   commentArea(viewer, pv, toRect(right, bottom), band);
 }
 
+/** Move the visible pointer onto a dock button and click it. */
+async function clickButton(pointer: Pointer, selector: string): Promise<void> {
+  const el = document.querySelector<HTMLElement>(selector);
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  await pointer.move(r.left + r.width / 2, r.top + r.height / 2, 700);
+  await pointer.click();
+}
+
+/** Draw the points (client coordinates) as one shape, moving the pointer along. */
+async function drawStroke(
+  pv: PageView,
+  pointer: Pointer,
+  points: [number, number][],
+  ms: number,
+): Promise<void> {
+  const page = pv.el.getBoundingClientRect();
+  const norm = ([x, y]: [number, number]): [number, number] => [
+    (x - page.left) / page.width,
+    (y - page.top) / page.height,
+  ];
+  const [first, ...rest] = points;
+  if (!first) return;
+  await pointer.move(first[0], first[1], 800);
+  pointer.press(true);
+  beginShape(pv, norm(first));
+  for (const p of rest) {
+    extendCurrent(norm(p));
+    await pointer.move(p[0], p[1], ms);
+  }
+  endShape();
+  pointer.press(false);
+}
+
+/** Circle the "Risks" section freehand and draw an arrow up to the costs heading. */
+async function drawSketch(viewer: Viewer, pointer: Pointer): Promise<void> {
+  const pv = viewer.pages[0];
+  if (!pv) return;
+  const heading = await until(() => findRange(viewer, 0, "Risks"));
+  heading.startContainer.parentElement?.scrollIntoView({ block: "center", behavior: "smooth" });
+  await sleep(900);
+  const head = await until(() => findRange(viewer, 0, "Risks"));
+  const end = await until(() => findRange(viewer, 0, "before the switch."));
+  const costs = await until(() => findRange(viewer, 0, "Costs and benefits"));
+  const page = pv.el.getBoundingClientRect();
+  const top = head.getBoundingClientRect().top - 12;
+  const bottom = end.getBoundingClientRect().bottom + 12;
+  const left = page.left + page.width * 0.07;
+  const right = page.left + page.width * 0.93;
+
+  await clickButton(pointer, '#tools [data-tool="draw"]');
+  setTool("draw");
+
+  // a slightly wobbly loop, a bit more than once around, like by hand
+  const cx = (left + right) / 2;
+  const cy = (top + bottom) / 2;
+  const rx = (right - left) / 2;
+  const ry = (bottom - top) / 2 + 6;
+  const loop: [number, number][] = [];
+  for (let i = 0; i <= 48; i++) {
+    const a = Math.PI * 0.85 + (i / 48) * 2.1 * Math.PI;
+    const wobble = 1 + 0.025 * Math.sin(i * 0.9);
+    loop.push([cx + rx * wobble * Math.cos(a), cy + ry * wobble * Math.sin(a)]);
+  }
+  await drawStroke(pv, pointer, loop, 22);
+  await sleep(250);
+
+  await clickButton(pointer, '#shapes [data-shape="arrow"]');
+  setShape("arrow");
+  const target = costs.getBoundingClientRect();
+  const from: [number, number] = [left + 4, top - 4];
+  const to: [number, number] = [target.left - 14, target.top + target.height / 2];
+  const arrow: [number, number][] = [];
+  for (let i = 0; i <= 14; i++) {
+    arrow.push([from[0] + ((to[0] - from[0]) * i) / 14, from[1] + ((to[1] - from[1]) * i) / 14]);
+  }
+  await drawStroke(pv, pointer, arrow, 30);
+  await sleep(400);
+  commentSketch();
+}
+
 async function animate(viewer: Viewer, doc: DocState): Promise<void> {
   update((s) => {
     s.live = true;
@@ -227,6 +309,15 @@ async function animate(viewer: Viewer, doc: DocState): Promise<void> {
   setTool("text");
   await pointer.move(window.innerWidth - 230, window.innerHeight - 190, 900);
   await until(resolved(2), 60_000);
+  await sleep(1800);
+
+  await drawSketch(viewer, pointer);
+  await sleep(400);
+  await type("Move this section before the costs", 50);
+  setShape("pen");
+  setTool("text");
+  await pointer.move(window.innerWidth - 230, window.innerHeight - 190, 900);
+  await until(resolved(3), 60_000);
   await sleep(2500);
 }
 

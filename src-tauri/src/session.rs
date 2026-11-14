@@ -320,8 +320,10 @@ mod tests {
             .resolve(Some(dir.path().join("b.pdf").to_str().unwrap()), Some("one"))
             .unwrap();
         assert_eq!(by_path.id, b.id, "explicit path wins over the client binding");
+        // built from the tempdir: "/nope/x.pdf" is not absolute on Windows
+        let missing = dir.path().join("nope").join("x.pdf");
         assert!(
-            s.resolve(Some("/nope/x.pdf"), None)
+            s.resolve(Some(missing.to_str().unwrap()), None)
                 .unwrap_err()
                 .contains("not open")
         );
@@ -354,12 +356,13 @@ mod tests {
     #[test]
     fn failed_open_does_not_leave_an_empty_tab() {
         let s = Session::new(0);
+        let dir = tempfile::tempdir().unwrap();
+        let missing = dir.path().join("not-here.pdf");
         assert!(
-            s.open("/definitely/not/here.pdf", None, None)
+            s.open(missing.to_str().unwrap(), None, None)
                 .unwrap_err()
                 .contains("does not exist")
         );
-        let dir = tempfile::tempdir().unwrap();
         let docx = dir.path().join("a.docx");
         std::fs::write(&docx, b"x").unwrap();
         assert!(
