@@ -11,8 +11,22 @@ permissions:
   contents: write
 
 jobs:
+  # Create the release once up front: parallel builds racing to create it fail.
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 ||
+            gh release create "$TAG" -R "$GITHUB_REPOSITORY" --verify-tag --title "PDFnotator $TAG" \
+              --notes "See [CHANGELOG.md](https://github.com/$GITHUB_REPOSITORY/blob/main/CHANGELOG.md) for details."
+
   build:
     name: Build (${{ matrix.name }})
+    needs: release
     strategy:
       fail-fast: false
       matrix:
