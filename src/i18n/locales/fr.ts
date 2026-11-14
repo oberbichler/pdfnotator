@@ -1,0 +1,132 @@
+import type { Messages } from "./en";
+
+const fr: Messages = {
+  "app.name": "PDFnotator",
+
+  "agent.none": "Aucun agent",
+  "agent.noneHint": "Dites à votre agent « ouvre dans pdfnotator » ou collez le prompt de démarrage.",
+  "agent.listening": "Agent à l’écoute",
+  "agent.listeningHint": "Les commentaires parviennent immédiatement à l’agent.",
+  "agent.working": "Agent au travail",
+  "agent.workingHint":
+    "Les nouveaux commentaires sont regroupés et transmis lors de la prochaine récupération.",
+  "agent.serverError": "Erreur du serveur",
+  "agent.pending": {
+    one: "{n} commentaire en attente de récupération",
+    many: "{n} commentaires en attente de récupération",
+    other: "{n} commentaires en attente de récupération",
+  },
+  "agent.name": "Agent",
+
+  "connect.copyUrl": "Copier l’URL",
+  "connect.copyPrompt": "Copier le prompt de démarrage",
+  "connect.copyPromptHint": "À coller dans le chat de votre agent",
+  "connect.copyVscode": "Copier le mcp.json pour VS Code",
+  "connect.copyVscodeHint": "Connecter Copilot une seule fois",
+  "connect.copyClaude": "Copier la commande Claude Code",
+  "connect.copyClaudeHint": "claude mcp add …",
+  "connect.copyCopilotCli": "Copier la commande Copilot CLI",
+  "connect.copyCopilotCliHint": "copilot mcp add …",
+  "connect.copied": "Copié",
+  "connect.promptCopied": "Prompt copié — collez-le dans le chat de votre agent",
+  "connect.copyFailed": "Échec de la copie : {error}",
+
+  "language.title": "Langue",
+  "language.system": "Langue du système",
+
+  "empty.title": "Déposez un document ici",
+  "empty.subtitle": ".typ ou .pdf — ou dites à votre agent « ouvre dans pdfnotator »",
+  "empty.open": "Ouvrir un fichier",
+  "dialog.filter": "Typst / PDF",
+
+  "tool.text": "Sélectionner du texte",
+  "tool.area": "Marquer une zone",
+  "zoom.in": "Zoom avant",
+  "zoom.out": "Zoom arrière",
+  "zoom.fit": "Ajuster à la largeur",
+  "page.jump": "Aller à la page",
+
+  "sidebar.title": "Retours",
+  "sidebar.toggle": "Afficher/masquer la barre latérale",
+  "resolved.hide": "Masquer les terminés",
+  "resolved.show": "Afficher les terminés",
+  "hint.text": "Sélectionner du texte",
+  "hint.area": "Marquer une zone",
+  "hint.delete": "Supprimer la sélection",
+  "hint.body": "Chaque commentaire est envoyé directement à l’agent — le PDF se met à jour tout seul.",
+
+  "drafts.count": { one: "{n} brouillon", many: "{n} brouillons", other: "{n} brouillons" },
+  "drafts.sendAll": "Tout envoyer",
+  "general.placeholder": "Message à l’agent …",
+  "live.label": "Instantané",
+  "live.on": "Envoi instantané activé : chaque commentaire est envoyé directement à l’agent",
+  "live.off": "Envoi instantané désactivé : regroupez les commentaires, puis envoyez-les tous avec ⌘↵",
+  send: "Envoyer",
+
+  "action.comment": "Commenter",
+  "action.replace": "Remplacer",
+  "action.delete": "Supprimer",
+
+  "composer.cancel": "Annuler",
+  "composer.placeholder.comment": "Que faut-il modifier ?",
+  "composer.placeholder.replace": "Nouveau texte …",
+  "composer.placeholder.delete": "Raison (facultatif) …",
+  "composer.verb.send": "envoyer",
+  "composer.verb.add": "ajouter",
+  "composer.verb.delete": "supprimer",
+  "composer.mode": "mode",
+  "composer.area": "Zone · p. {page}",
+
+  "comment.deleteText": "Supprime ce texte.",
+  "comment.deleteArea": "Supprime cette zone.",
+  "comment.replaceWith": "Remplace par : « {text} »",
+
+  "card.general": "Général",
+  "card.page": "p. {page}",
+  "card.noComment": "sans commentaire",
+  "card.delete": "Supprimer",
+  "card.resend": "Renvoyer",
+  "status.draft": "brouillon",
+  "status.draftTitle": "Pas encore envoyé",
+  "status.sent": "envoyé",
+  "status.sentTitle": "En attente de récupération par l’agent",
+  "status.delivered": "chez l’agent",
+  "status.deliveredTitle": "L’agent a reçu ce commentaire",
+  "status.resolved": "terminé",
+  "status.resolvedTitle": "Marqué comme terminé par l’agent",
+
+  "tab.close": "Fermer l’onglet",
+  "tab.new": "Ouvrir un document",
+  "tab.closedByUser": "Document fermé",
+
+  "nav.toggle": "Pages et plan",
+  "nav.pages": "Pages",
+  "nav.outline": "Plan",
+  "nav.noOutline": "Ce document n’a pas de plan",
+  "nav.page": "Page {page}",
+  "nav.comments": {
+    one: "{n} commentaire ouvert",
+    many: "{n} commentaires ouverts",
+    other: "{n} commentaires ouverts",
+  },
+
+  "search.open": "Rechercher",
+  "search.placeholder": "Rechercher dans le document",
+  "search.count": "{current} sur {total}",
+  "search.none": "Aucun résultat",
+  "search.next": "Résultat suivant",
+  "search.prev": "Résultat précédent",
+  "search.close": "Fermer la recherche",
+
+  "compile.title": "Erreur Typst",
+  "compile.hint": "affichage de la dernière version valide",
+  "live.typst": "En direct — pdfnotator compile {file} automatiquement",
+  "live.pdf": "En direct — se recharge automatiquement quand le fichier change",
+
+  "error.loadPdf": "Impossible de charger le PDF : {error}",
+  "error.screenshot": "Échec de la capture d’écran : {error}",
+  "error.send": "Échec de l’envoi : {error}",
+  "error.unsupportedDrop": "Seuls les fichiers .typ et .pdf sont pris en charge",
+};
+
+export default fr;

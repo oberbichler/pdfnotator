@@ -1,0 +1,26 @@
+name: Bug report
+description: Something does not work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: agent
+    attributes:
+      label: Agent / MCP client
+      placeholder: e.g. VS Code Copilot 1.106, Claude Code 2.1, Copilot CLI
+  - type: input
+    id: version
+    attributes:
+      label: PDFnotator version and OS
+      placeholder: e.g. 0.1.0 on macOS 15.4 (Apple Silicon)
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      render: text

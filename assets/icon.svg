@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img">
+  <title>PDFnotator</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4F46E5"/>
+      <stop offset="0.55" stop-color="#4338CA"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.3" cy="0.15" r="0.75">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#EEF0FB"/>
+    </linearGradient>
+    <linearGradient id="pin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FCD34D"/>
+      <stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="22" stdDeviation="26" flood-color="#1E1B4B" flood-opacity="0.45"/>
+    </filter>
+    <filter id="pinShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#78350F" flood-opacity="0.45"/>
+    </filter>
+    <clipPath id="squircle">
+      <rect x="100" y="100" width="824" height="824" rx="186"/>
+    </clipPath>
+  </defs>
+
+  <!-- background -->
+  <g clip-path="url(#squircle)">
+    <rect x="100" y="100" width="824" height="824" fill="url(#bg)"/>
+    <rect x="100" y="100" width="824" height="824" fill="url(#glow)"/>
+  </g>
+  <rect x="100.5" y="100.5" width="823" height="823" rx="186" fill="none" stroke="#FFFFFF" stroke-opacity="0.14" stroke-width="2"/>
+
+  <!-- page with folded corner -->
+  <g filter="url(#shadow)">
+    <path d="M318 232 H610 L708 330 V760 Q708 792 676 792 H318 Q286 792 286 760 V264 Q286 232 318 232 Z" fill="url(#paper)"/>
+  </g>
+  <path d="M610 232 V302 Q610 330 638 330 H708 Z" fill="#C7CBF0"/>
+
+  <!-- text lines -->
+  <g fill="#C9CEE3">
+    <rect x="346" y="300" width="200" height="22" rx="11" fill="#6366F1" opacity="0.85"/>
+    <rect x="346" y="378" width="300" height="18" rx="9"/>
+    <rect x="346" y="424" width="262" height="18" rx="9"/>
+    <rect x="346" y="562" width="300" height="18" rx="9"/>
+    <rect x="346" y="608" width="210" height="18" rx="9"/>
+    <rect x="346" y="654" width="250" height="18" rx="9"/>
+  </g>
+  <!-- highlighted line -->
+  <rect x="334" y="458" width="300" height="50" rx="12" fill="#FBBF24" opacity="0.38"/>
+  <rect x="346" y="474" width="276" height="18" rx="9" fill="#B45309" opacity="0.55"/>
+  <rect x="334" y="504" width="300" height="5" rx="2.5" fill="#F59E0B"/>
+
+  <!-- comment pin with AI spark -->
+  <g filter="url(#pinShadow)">
+    <path d="M700 548 a128 128 0 1 1 0 256 H572 V676 a128 128 0 0 1 128 -128 Z" fill="url(#pin)"/>
+  </g>
+  <path d="M700 612 C707 655 721 669 764 676 C721 683 707 697 700 740 C693 697 679 683 636 676 C679 669 693 655 700 612 Z" fill="#FFFFFF"/>
+  <circle cx="757" cy="618" r="13" fill="#FFFFFF" opacity="0.9"/>
+</svg>
