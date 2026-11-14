@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-14
+
 ### Added
 
 - Draw tool (`D`): sketch on the page with freehand strokes, arrows and rectangles (`⇥` switches, `⌘Z` undoes),
@@ -54,5 +56,6 @@ All notable changes to this project are documented here. The format is based on
 - User interface in all 24 official EU languages.
 - File associations for `.typ` and `.pdf`, single-instance hand-over from the command line.
 
-[Unreleased]: ../../compare/v0.1.0...HEAD
+[Unreleased]: ../../compare/v0.2.0...HEAD
+[0.2.0]: ../../compare/v0.1.0...v0.2.0
 [0.1.0]: ../../releases/tag/v0.1.0
