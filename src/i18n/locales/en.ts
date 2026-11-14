@@ -43,6 +43,10 @@ const en = {
 
   "tool.text": "Select text",
   "tool.area": "Mark area",
+  "tool.draw": "Draw",
+  "shape.pen": "Freehand",
+  "shape.arrow": "Arrow",
+  "shape.rect": "Rectangle",
   "zoom.in": "Zoom in",
   "zoom.out": "Zoom out",
   "zoom.fit": "Fit width",
@@ -54,6 +58,7 @@ const en = {
   "resolved.show": "Show resolved",
   "hint.text": "Select text",
   "hint.area": "Mark an area",
+  "hint.draw": "Draw on the page",
   "hint.delete": "Delete selection",
   "hint.body": "Every comment goes straight to the agent — the PDF updates by itself.",
 
@@ -78,6 +83,8 @@ const en = {
   "composer.verb.delete": "delete",
   "composer.mode": "mode",
   "composer.area": "Area · p. {page}",
+  "composer.sketch": "Sketch · p. {page}",
+  "sketch.hint": "Type to comment · ⌘Z undo · Esc discard",
 
   "comment.deleteText": "Delete this text.",
   "comment.deleteArea": "Delete this area.",

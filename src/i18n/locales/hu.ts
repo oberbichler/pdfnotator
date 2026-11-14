@@ -36,6 +36,10 @@ const hu: Messages = {
 
   "tool.text": "Szöveg kijelölése",
   "tool.area": "Terület kijelölése",
+  "tool.draw": "Rajzolás",
+  "shape.pen": "Szabadkézi",
+  "shape.arrow": "Nyíl",
+  "shape.rect": "Téglalap",
   "zoom.in": "Nagyítás",
   "zoom.out": "Kicsinyítés",
   "zoom.fit": "Szélességhez igazítás",
@@ -47,6 +51,7 @@ const hu: Messages = {
   "resolved.show": "Megoldottak megjelenítése",
   "hint.text": "Szöveg kijelölése",
   "hint.area": "Terület kijelölése",
+  "hint.draw": "Rajzolás az oldalra",
   "hint.delete": "Kijelölés törlése",
   "hint.body": "Minden megjegyzés közvetlenül az ügynökhöz kerül – a PDF magától frissül.",
 
@@ -72,6 +77,8 @@ const hu: Messages = {
   "composer.verb.delete": "törlés",
   "composer.mode": "mód",
   "composer.area": "Terület · {page}. o.",
+  "composer.sketch": "Vázlat · {page}. o.",
+  "sketch.hint": "Gépeljen a megjegyzéshez · ⌘Z visszavonás · Esc elvetés",
 
   "comment.deleteText": "Töröld ezt a szöveget.",
   "comment.deleteArea": "Töröld ezt a területet.",

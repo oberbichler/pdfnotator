@@ -23,8 +23,12 @@ export interface ComposerOptions {
   quote?: string;
   image?: Promise<Screenshot>;
   mode?: ComposerMode;
-  /** Called when the composer closes (e.g. remove the rubber band). */
-  onClose?: () => void;
+  /** Icon in the header (default: by comment kind). */
+  icon?: string;
+  /** Text already typed (the keystroke that opened the composer). */
+  initialText?: string;
+  /** Called when the composer closes (e.g. remove the rubber band); `sent` if it was submitted. */
+  onClose?: (sent: boolean) => void;
 }
 
 let root: HTMLElement;
@@ -33,7 +37,7 @@ let context: HTMLElement;
 let draft: CommentDraft | null = null;
 let mode: ComposerMode = "comment";
 let quote = "";
-let onClose: (() => void) | null = null;
+let onClose: ((sent: boolean) => void) | null = null;
 /** Called after the composer closed, so pending text-layer swaps can run. */
 let afterClose: () => void = () => {};
 
@@ -56,7 +60,10 @@ export function openComposer(anchor: DOMRect, newDraft: CommentDraft, opts: Comp
   onClose = opts.onClose ?? null;
   const isArea = newDraft.kind === "area";
 
-  byId("cmp-kind").replaceChildren(icon(isArea ? "area" : "quote", 13), document.createTextNode(opts.label));
+  byId("cmp-kind").replaceChildren(
+    icon(opts.icon ?? (isArea ? "area" : "quote"), 13),
+    document.createTextNode(opts.label),
+  );
   // replacing makes no sense for a screenshot region
   root.querySelector('[data-mode="replace"]')?.classList.toggle("hidden", isArea);
 
@@ -79,6 +86,10 @@ export function openComposer(anchor: DOMRect, newDraft: CommentDraft, opts: Comp
   input.value = "";
   root.classList.remove("hidden");
   setMode(opts.mode ?? "comment");
+  if (opts.initialText) {
+    input.value = opts.initialText;
+    autoGrow(input);
+  }
   position(anchor);
 }
 
@@ -91,10 +102,10 @@ function position(anchor: DOMRect): void {
   root.style.top = `${top}px`;
 }
 
-export function closeComposer(): void {
+export function closeComposer(sent = false): void {
   if (!root || !isComposerOpen()) return;
   root.classList.add("hidden");
-  onClose?.();
+  onClose?.(sent);
   onClose = null;
   draft = null;
   afterClose();
@@ -144,7 +155,7 @@ function submit(): void {
   }
   const committed = draft;
   draft = null;
-  closeComposer();
+  closeComposer(true);
   window.getSelection()?.removeAllRanges();
   void commitDraft(committed, text);
 }
@@ -157,7 +168,7 @@ export function initComposer(options: { afterClose: () => void }): void {
 
   for (const b of modeButtons()) b.addEventListener("click", () => setMode(b.dataset.mode as ComposerMode));
   byId("cmp-send").addEventListener("click", submit);
-  byId("cmp-close").addEventListener("click", closeComposer);
+  byId("cmp-close").addEventListener("click", () => closeComposer());
   input.addEventListener("input", () => autoGrow(input));
   input.addEventListener("keydown", (e) => {
     if (e.isComposing) return;

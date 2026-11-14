@@ -41,6 +41,10 @@ const pl: Messages = {
 
   "tool.text": "Zaznacz tekst",
   "tool.area": "Zaznacz obszar",
+  "tool.draw": "Rysuj",
+  "shape.pen": "Odręcznie",
+  "shape.arrow": "Strzałka",
+  "shape.rect": "Prostokąt",
   "zoom.in": "Powiększ",
   "zoom.out": "Pomniejsz",
   "zoom.fit": "Dopasuj do szerokości",
@@ -52,6 +56,7 @@ const pl: Messages = {
   "resolved.show": "Pokaż załatwione",
   "hint.text": "Zaznacz tekst",
   "hint.area": "Zaznacz obszar",
+  "hint.draw": "Rysuj na stronie",
   "hint.delete": "Usuń zaznaczenie",
   "hint.body": "Każdy komentarz trafia prosto do agenta – PDF aktualizuje się sam.",
 
@@ -81,6 +86,8 @@ const pl: Messages = {
   "composer.verb.delete": "usuń",
   "composer.mode": "tryb",
   "composer.area": "Obszar · s. {page}",
+  "composer.sketch": "Szkic · s. {page}",
+  "sketch.hint": "Pisz, aby skomentować · ⌘Z cofnij · Esc odrzuć",
 
   "comment.deleteText": "Usuń ten tekst.",
   "comment.deleteArea": "Usuń ten obszar.",

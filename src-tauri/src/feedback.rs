@@ -19,6 +19,43 @@ pub enum FeedbackKind {
     General,
 }
 
+/// Shape of a sketch drawn on the page.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ShapeKind {
+    /// Freehand stroke.
+    Pen,
+    Arrow,
+    Rect,
+}
+
+/// One shape of a sketch, described for the agent. Positions in mm from the
+/// page's top-left corner.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FeedbackShape {
+    #[serde(rename = "type")]
+    pub kind: ShapeKind,
+    /// Bounding box `[x, y, w, h]`.
+    #[serde(default)]
+    pub box_mm: [f64; 4],
+    #[serde(default)]
+    pub from_mm: Option<[f64; 2]>,
+    #[serde(default)]
+    pub to_mm: Option<[f64; 2]>,
+    /// Freehand stroke whose ends meet: it encircles something.
+    #[serde(default)]
+    pub closed: bool,
+    /// Page text inside the shape (pen, rectangle).
+    #[serde(default)]
+    pub text: Option<String>,
+    /// Page text at the arrow's tail and head.
+    #[serde(default)]
+    pub from_text: Option<String>,
+    #[serde(default)]
+    pub to_text: Option<String>,
+}
+
 /// One comment from the user.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -49,6 +86,12 @@ pub struct FeedbackItem {
     /// Text inside an area selection.
     #[serde(default)]
     pub area_text: Option<String>,
+    /// Sketch drawn on the page (area comments); `image` shows it, `clean` the region without it.
+    #[serde(default)]
+    pub shapes: Vec<FeedbackShape>,
+    /// Full-resolution PNG of a sketch's region without the sketch.
+    #[serde(default)]
+    pub clean: Option<String>,
 }
 
 /// After the first comment arrives, wait this long so a burst is delivered together.
@@ -231,6 +274,8 @@ pub(crate) fn item(id: &str) -> FeedbackItem {
         preview: None,
         context: None,
         area_text: None,
+        shapes: Vec::new(),
+        clean: None,
     }
 }
 

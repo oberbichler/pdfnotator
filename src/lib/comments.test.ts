@@ -46,7 +46,36 @@ describe("comments", () => {
       preview: null,
       areaText: null,
       context: null,
+      shapes: [],
+      clean: null,
     });
+  });
+
+  it("sends a sketch's description and clean screenshot", () => {
+    const c: Comment = {
+      id: "c5",
+      kind: "area",
+      page: 1,
+      comment: "move this",
+      rect: [0, 0, 1, 1],
+      sketch: [
+        {
+          type: "rect",
+          points: [
+            [0, 0],
+            [0.5, 0.5],
+          ],
+        },
+      ],
+      sketchInfo: [{ type: "rect", boxMm: [0, 0, 105, 148] }],
+      clean: "def",
+      status: "draft",
+      createdAt: 1,
+    };
+    const payload = toPayload(c);
+    expect(payload.shapes).toEqual([{ type: "rect", boxMm: [0, 0, 105, 148] }]);
+    expect(payload.clean).toBe("def");
+    expect(payload).not.toHaveProperty("sketch");
   });
 
   it("shows ids as numbers", () => {

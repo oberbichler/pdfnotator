@@ -49,6 +49,7 @@ export async function commitDraft(draft: CommentDraft, text: string): Promise<vo
       const shot = await imagePromise;
       comment.image = shot.image;
       comment.preview = shot.preview;
+      comment.clean = shot.clean;
     } catch (error) {
       toast(t("error.screenshot", { error: String(error) }), "error");
     } finally {

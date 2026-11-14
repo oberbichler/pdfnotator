@@ -41,6 +41,10 @@ const cs: Messages = {
 
   "tool.text": "Vybrat text",
   "tool.area": "Označit oblast",
+  "tool.draw": "Kreslit",
+  "shape.pen": "Volná ruka",
+  "shape.arrow": "Šipka",
+  "shape.rect": "Obdélník",
   "zoom.in": "Přiblížit",
   "zoom.out": "Oddálit",
   "zoom.fit": "Přizpůsobit šířce",
@@ -52,6 +56,7 @@ const cs: Messages = {
   "resolved.show": "Zobrazit vyřešené",
   "hint.text": "Vybrat text",
   "hint.area": "Označit oblast",
+  "hint.draw": "Kreslit do stránky",
   "hint.delete": "Smazat výběr",
   "hint.body": "Každý komentář jde přímo k agentovi – PDF se aktualizuje samo.",
 
@@ -81,6 +86,8 @@ const cs: Messages = {
   "composer.verb.delete": "smazat",
   "composer.mode": "režim",
   "composer.area": "Oblast · s. {page}",
+  "composer.sketch": "Náčrt · s. {page}",
+  "sketch.hint": "Pište pro komentář · ⌘Z zpět · Esc zahodit",
 
   "comment.deleteText": "Smaž tento text.",
   "comment.deleteArea": "Smaž tuto oblast.",

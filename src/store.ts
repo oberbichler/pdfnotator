@@ -9,9 +9,10 @@
  */
 import type { DocStatus, ServerStatus } from "./backend";
 import type { AgentMessage, Comment, CommentStatus } from "./lib/comments";
+import type { ShapeType } from "./lib/sketch";
 import type { ViewState } from "./viewer";
 
-export type Tool = "text" | "area";
+export type Tool = "text" | "area" | "draw";
 export type NavTab = "pages" | "outline";
 
 export interface DocState extends DocStatus {
@@ -33,6 +34,8 @@ export interface State {
   /** Send each comment immediately instead of collecting drafts. */
   live: boolean;
   tool: Tool;
+  /** Shape drawn by the draw tool. */
+  shape: ShapeType;
   navOpen: boolean;
   navTab: NavTab;
 }
@@ -45,6 +48,7 @@ export const state: State = {
   hideResolved: false,
   live: true,
   tool: "text",
+  shape: "pen",
   navOpen: false,
   navTab: "pages",
 };

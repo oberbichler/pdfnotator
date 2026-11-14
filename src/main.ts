@@ -37,6 +37,7 @@ import { initNavigator } from "./ui/navigator";
 import { initSearch } from "./ui/search";
 import { initSelection, isSelecting } from "./ui/selection";
 import { initSidebar } from "./ui/sidebar";
+import { attachSketchTool, initSketchTool } from "./ui/sketch-tool";
 import { initStatus, setExecutable } from "./ui/status";
 import { initTabs, pulseActiveTab } from "./ui/tabs";
 import { initThread } from "./ui/thread";
@@ -70,7 +71,10 @@ const viewer = new Viewer(byId("viewer-scroll"), byId("pages"), {
     clearTimeout(reportTimer);
     reportTimer = window.setTimeout(() => backend.setView(doc, page, count).catch(() => {}), 250);
   },
-  onPageCreated: (pv) => attachAreaTool(viewer, pv),
+  onPageCreated: (pv) => {
+    attachAreaTool(viewer, pv);
+    attachSketchTool(pv);
+  },
   onScaleChange: showScale,
   onTextLayer: (pv) => search.onTextLayer(pv),
   onDocumentLoaded(isReload) {
@@ -87,6 +91,7 @@ const search = initSearch(viewer);
 initComposer({ afterClose: () => viewer.flushTextSwap() });
 initSelection(viewer);
 initMarks(viewer);
+initSketchTool(viewer);
 initThread(viewer);
 initSidebar();
 initStatus();

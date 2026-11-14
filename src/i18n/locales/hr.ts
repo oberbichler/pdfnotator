@@ -40,6 +40,10 @@ const hr: Messages = {
 
   "tool.text": "Odaberi tekst",
   "tool.area": "Označi područje",
+  "tool.draw": "Crtaj",
+  "shape.pen": "Slobodna ruka",
+  "shape.arrow": "Strelica",
+  "shape.rect": "Pravokutnik",
   "zoom.in": "Povećaj",
   "zoom.out": "Smanji",
   "zoom.fit": "Prilagodi širini",
@@ -51,6 +55,7 @@ const hr: Messages = {
   "resolved.show": "Prikaži riješene",
   "hint.text": "Odaberi tekst",
   "hint.area": "Označi područje",
+  "hint.draw": "Crtajte po stranici",
   "hint.delete": "Izbriši odabir",
   "hint.body": "Svaki komentar ide izravno agentu – PDF se ažurira sam.",
 
@@ -79,6 +84,8 @@ const hr: Messages = {
   "composer.verb.delete": "izbriši",
   "composer.mode": "način",
   "composer.area": "Područje · str. {page}",
+  "composer.sketch": "Skica · str. {page}",
+  "sketch.hint": "Tipkajte za komentar · ⌘Z poništi · Esc odbaci",
 
   "comment.deleteText": "Izbriši ovaj tekst.",
   "comment.deleteArea": "Izbriši ovo područje.",

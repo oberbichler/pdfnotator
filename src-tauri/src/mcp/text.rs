@@ -9,7 +9,7 @@ use serde_json::{Value, json};
 
 use super::{RpcResult, code};
 use crate::document::DocStatus;
-use crate::feedback::{FeedbackItem, FeedbackKind};
+use crate::feedback::{FeedbackItem, FeedbackKind, FeedbackShape, ShapeKind};
 
 pub const INSTRUCTIONS: &str = "\
 pdfnotator is a PDF viewer next to you for pair-designing documents (usually Typst) with the user. \
@@ -63,6 +63,7 @@ pub fn text(s: impl Into<String>) -> Value {
 /// Default limits keep tool results small; `get_comments` returns everything.
 const QUOTE_LIMIT: usize = 400;
 const AREA_TEXT_LIMIT: usize = 200;
+const SHAPE_TEXT_LIMIT: usize = 80;
 const ERROR_LIMIT: usize = 1500;
 
 /// Shorten `s` to about `limit` characters (at a word boundary). Returns the
@@ -148,6 +149,9 @@ fn render_item(item: &FeedbackItem, detail: Detail, image_dir: &Path) -> (Vec<Va
     let mut s = String::new();
     let _ = match item.kind {
         FeedbackKind::Text => writeln!(s, "## [{}] page {} · text", item.id, item.page),
+        FeedbackKind::Area if !item.shapes.is_empty() => {
+            writeln!(s, "## [{}] page {} · sketch", item.id, item.page)
+        }
         FeedbackKind::Area => writeln!(s, "## [{}] page {} · area", item.id, item.page),
         FeedbackKind::General => writeln!(s, "## [{}] general", item.id),
     };
@@ -174,6 +178,17 @@ fn render_item(item: &FeedbackItem, detail: Detail, image_dir: &Path) -> (Vec<Va
         cut |= c;
         let _ = writeln!(s, "Text in area: \"{t}\"");
     }
+    if !item.shapes.is_empty() {
+        let _ = writeln!(
+            s,
+            "Sketch (drawn in red on the screenshot; mm from the page's top-left corner):"
+        );
+        for shape in &item.shapes {
+            let (line, c) = describe_shape(shape, full);
+            cut |= c;
+            let _ = writeln!(s, "- {line}");
+        }
+    }
     if let Some([x, y, w, h]) = item.rect.filter(|_| full) {
         let _ = writeln!(
             s,
@@ -199,13 +214,78 @@ fn render_item(item: &FeedbackItem, detail: Detail, image_dir: &Path) -> (Vec<Va
             item.preview.as_deref().or(Some(full_png))
         };
         cut |= !full && item.preview.is_some();
+        let clean = item.clean.as_deref().filter(|_| full);
+        if let Some(file) = item
+            .clean
+            .as_deref()
+            .and_then(|png| save_png(png, &format!("{}-clean", item.id), image_dir))
+        {
+            let _ = writeln!(s, "Without the sketch: {}", file.display());
+        }
+        cut |= !full && item.clean.is_some();
         blocks.push(text(s));
-        blocks.extend(shown.map(|b64| json!({ "type": "image", "data": b64, "mimeType": "image/png" })));
+        blocks.extend(
+            shown
+                .into_iter()
+                .chain(clean)
+                .map(|b64| json!({ "type": "image", "data": b64, "mimeType": "image/png" })),
+        );
     } else {
         cut |= !full && item.context.is_some();
         blocks.push(text(s));
     }
     (blocks, cut)
+}
+
+/// One line per sketch shape, e.g. `arrow from (21, 30) "Figure 3" to (189, 149) "Section 2.1"`.
+fn describe_shape(shape: &FeedbackShape, full: bool) -> (String, bool) {
+    let mut cut = false;
+    let mut quoted = |t: Option<&str>| match t.map(str::trim).filter(|t| !t.is_empty()) {
+        Some(t) if full => format!(" \"{t}\""),
+        Some(t) => {
+            let (t, c) = shorten(t, SHAPE_TEXT_LIMIT);
+            cut |= c;
+            format!(" \"{t}\"")
+        }
+        None => String::new(),
+    };
+    let at = |[x, y]: [f64; 2]| format!("({x:.0}, {y:.0})");
+    let [x, y, w, h] = shape.box_mm;
+    let line = match shape.kind {
+        ShapeKind::Arrow => {
+            let from = quoted(shape.from_text.as_deref());
+            let to = quoted(shape.to_text.as_deref());
+            format!(
+                "arrow from {}{from} to {}{to}",
+                at(shape.from_mm.unwrap_or([x, y])),
+                at(shape.to_mm.unwrap_or([x + w, y + h]))
+            )
+        }
+        ShapeKind::Rect => {
+            let inside = quoted(shape.text.as_deref());
+            let inside = if inside.is_empty() {
+                " (empty)".to_owned()
+            } else {
+                format!(" containing{inside}")
+            };
+            format!("rectangle {w:.0} × {h:.0} mm at {}{inside}", at([x, y]))
+        }
+        ShapeKind::Pen => {
+            let what = if shape.closed {
+                "loop around"
+            } else {
+                "freehand stroke over"
+            };
+            let text = quoted(shape.text.as_deref());
+            let text = if text.is_empty() {
+                " empty space".to_owned()
+            } else {
+                text
+            };
+            format!("{what}{text}, {w:.0} × {h:.0} mm at {}", at([x, y]))
+        }
+    };
+    (line, cut)
 }
 
 fn save_png(b64: &str, id: &str, dir: &Path) -> Option<std::path::PathBuf> {
@@ -329,5 +409,67 @@ mod tests {
     fn image_ids_cannot_escape_directory() {
         assert_eq!(sanitize("../../etc/passwd"), "etcpasswd");
         assert_eq!(sanitize("c-1_x"), "c-1_x");
+    }
+
+    fn shape(kind: ShapeKind) -> FeedbackShape {
+        FeedbackShape {
+            kind,
+            box_mm: [20.0, 30.0, 60.0, 40.0],
+            from_mm: None,
+            to_mm: None,
+            closed: false,
+            text: None,
+            from_text: None,
+            to_text: None,
+        }
+    }
+
+    #[test]
+    fn sketches_are_described_shape_by_shape() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut it = item("c7");
+        it.kind = FeedbackKind::Area;
+        it.page = 2;
+        it.image = Some(base64::engine::general_purpose::STANDARD.encode(b"SKETCH"));
+        it.clean = Some(base64::engine::general_purpose::STANDARD.encode(b"CLEAN"));
+        let mut arrow = shape(ShapeKind::Arrow);
+        arrow.from_mm = Some([21.0, 30.0]);
+        arrow.to_mm = Some([189.0, 149.0]);
+        arrow.from_text = Some("Figure 3".into());
+        arrow.to_text = Some("Section 2.1".into());
+        let mut loop_ = shape(ShapeKind::Pen);
+        loop_.closed = true;
+        loop_.text = Some("Q3 revenue ".repeat(20));
+        it.shapes = vec![arrow, shape(ShapeKind::Rect), loop_];
+
+        let out = feedback_content(&[it.clone()], &status(), dir.path());
+        let t = joined(&out);
+        assert!(t.contains("## [c7] page 2 · sketch"), "{t}");
+        assert!(
+            t.contains(r#"- arrow from (21, 30) "Figure 3" to (189, 149) "Section 2.1""#),
+            "{t}"
+        );
+        assert!(t.contains("- rectangle 60 × 40 mm at (20, 30) (empty)"), "{t}");
+        assert!(t.contains("- loop around \"Q3 revenue"), "{t}");
+        assert!(t.contains("[+"), "long shape text is shortened: {t}");
+        assert_eq!(out.iter().filter(|b| b["type"] == "image").count(), 1);
+        assert!(dir.path().join("c7-clean.png").exists());
+
+        let full = details_content(&[it], dir.path());
+        let images: Vec<_> = full.iter().filter(|b| b["type"] == "image").collect();
+        assert_eq!(images.len(), 2, "with and without the sketch");
+        assert!(!joined(&full).contains("[+"));
+    }
+
+    #[test]
+    fn sketch_shapes_deserialize_from_the_viewer() {
+        let json = r#"{"id":"c1","kind":"area","page":1,"comment":"x","shapes":[
+            {"type":"arrow","boxMm":[1,2,3,4],"fromMm":[1,2],"toMm":[4,6],"toText":"Hi"},
+            {"type":"pen","boxMm":[0,0,9,9],"closed":true}]}"#;
+        let it: FeedbackItem = serde_json::from_str(json).unwrap();
+        assert_eq!(it.shapes.len(), 2);
+        assert_eq!(it.shapes[0].kind, ShapeKind::Arrow);
+        assert_eq!(it.shapes[0].to_text.as_deref(), Some("Hi"));
+        assert!(it.shapes[1].closed);
     }
 }

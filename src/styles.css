@@ -14,6 +14,7 @@
   --accent-soft: rgba(79, 70, 229, 0.1);
   --accent-ring: rgba(79, 70, 229, 0.35);
   --amber: #f59e0b;
+  --sketch: #e11d48;
   --amber-soft: rgba(245, 158, 11, 0.28);
   --green: #16a34a;
   --green-soft: rgba(22, 163, 74, 0.12);
@@ -451,12 +452,62 @@ main {
   z-index: 2;
   pointer-events: none;
 }
-body.mode-area .overlay {
+body.mode-area .overlay,
+body.mode-draw .overlay {
   pointer-events: auto;
   cursor: crosshair;
 }
-body.mode-area .textLayer {
+body.mode-area .textLayer,
+body.mode-draw .textLayer {
   pointer-events: none;
+}
+body:not(.mode-draw) #shapes {
+  display: none;
+}
+
+/* sketches */
+.sketch-layer,
+.mark.sketch-strokes {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  fill: none;
+  stroke: var(--sketch);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.mark.sketch-strokes {
+  border-radius: 0;
+}
+.mark.sketch-strokes.focus {
+  box-shadow: none;
+  background: none;
+  filter: drop-shadow(0 0 3px var(--accent));
+}
+.mark.sketch .pin {
+  left: -14px;
+  top: -14px;
+}
+.sketch-hint {
+  position: absolute;
+  margin-top: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--sketch);
+  color: #fff;
+  font:
+    600 11px / 16px -apple-system,
+    sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.sketch-hint[hidden] {
+  display: none;
 }
 
 /* marks */

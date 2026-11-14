@@ -41,6 +41,10 @@ const lt: Messages = {
 
   "tool.text": "Žymėti tekstą",
   "tool.area": "Žymėti sritį",
+  "tool.draw": "Piešti",
+  "shape.pen": "Laisva ranka",
+  "shape.arrow": "Rodyklė",
+  "shape.rect": "Stačiakampis",
   "zoom.in": "Didinti",
   "zoom.out": "Mažinti",
   "zoom.fit": "Pritaikyti pagal plotį",
@@ -52,6 +56,7 @@ const lt: Messages = {
   "resolved.show": "Rodyti atliktus",
   "hint.text": "Žymėti tekstą",
   "hint.area": "Pažymėti sritį",
+  "hint.draw": "Pieškite puslapyje",
   "hint.delete": "Ištrinti pažymėtą",
   "hint.body": "Kiekvienas komentaras keliauja tiesiai agentui – PDF atsinaujina savaime.",
 
@@ -81,6 +86,8 @@ const lt: Messages = {
   "composer.verb.delete": "ištrinti",
   "composer.mode": "režimas",
   "composer.area": "Sritis · {page} psl.",
+  "composer.sketch": "Eskizas · {page} psl.",
+  "sketch.hint": "Rašykite, kad pakomentuotumėte · ⌘Z atšaukti · Esc atmesti",
 
   "comment.deleteText": "Ištrink šį tekstą.",
   "comment.deleteArea": "Ištrink šią sritį.",

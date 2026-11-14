@@ -40,6 +40,10 @@ const ro: Messages = {
 
   "tool.text": "Selectează text",
   "tool.area": "Marchează zona",
+  "tool.draw": "Desenează",
+  "shape.pen": "Mână liberă",
+  "shape.arrow": "Săgeată",
+  "shape.rect": "Dreptunghi",
   "zoom.in": "Mărește",
   "zoom.out": "Micșorează",
   "zoom.fit": "Potrivește la lățime",
@@ -51,6 +55,7 @@ const ro: Messages = {
   "resolved.show": "Afișează rezolvatele",
   "hint.text": "Selectează text",
   "hint.area": "Marchează o zonă",
+  "hint.draw": "Desenați pe pagină",
   "hint.delete": "Șterge selecția",
   "hint.body": "Fiecare comentariu ajunge direct la agent – PDF-ul se actualizează singur.",
 
@@ -75,6 +80,8 @@ const ro: Messages = {
   "composer.verb.delete": "șterge",
   "composer.mode": "mod",
   "composer.area": "Zonă · p. {page}",
+  "composer.sketch": "Schiță · p. {page}",
+  "sketch.hint": "Tastați pentru a comenta · ⌘Z anulare · Esc renunțare",
 
   "comment.deleteText": "Șterge acest text.",
   "comment.deleteArea": "Șterge această zonă.",

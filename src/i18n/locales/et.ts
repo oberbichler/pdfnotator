@@ -36,6 +36,10 @@ const et: Messages = {
 
   "tool.text": "Vali tekst",
   "tool.area": "Märgi ala",
+  "tool.draw": "Joonista",
+  "shape.pen": "Vabakäsi",
+  "shape.arrow": "Nool",
+  "shape.rect": "Ristkülik",
   "zoom.in": "Suurenda",
   "zoom.out": "Vähenda",
   "zoom.fit": "Sobita laiusele",
@@ -47,6 +51,7 @@ const et: Messages = {
   "resolved.show": "Näita lahendatud",
   "hint.text": "Vali tekst",
   "hint.area": "Märgi ala",
+  "hint.draw": "Joonista lehele",
   "hint.delete": "Kustuta valik",
   "hint.body": "Iga kommentaar läheb otse agendile – PDF uueneb iseenesest.",
 
@@ -71,6 +76,8 @@ const et: Messages = {
   "composer.verb.delete": "kustuta",
   "composer.mode": "režiim",
   "composer.area": "Ala · lk {page}",
+  "composer.sketch": "Visand · lk {page}",
+  "sketch.hint": "Kommenteerimiseks kirjuta · ⌘Z võta tagasi · Esc loobu",
 
   "comment.deleteText": "Kustuta see tekst.",
   "comment.deleteArea": "Kustuta see ala.",

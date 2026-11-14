@@ -42,6 +42,10 @@ const mt: Messages = {
 
   "tool.text": "Agħżel test",
   "tool.area": "Immarka żona",
+  "tool.draw": "Pinġi",
+  "shape.pen": "Idejn ħielsa",
+  "shape.arrow": "Vleġġa",
+  "shape.rect": "Rettangolu",
   "zoom.in": "Kabbar",
   "zoom.out": "Ċekken",
   "zoom.fit": "Daħħal fil-wisa’",
@@ -53,6 +57,7 @@ const mt: Messages = {
   "resolved.show": "Uri dawk solvuti",
   "hint.text": "Agħżel test",
   "hint.area": "Immarka żona",
+  "hint.draw": "Pinġi fuq il-paġna",
   "hint.delete": "Ħassar l-għażla",
   "hint.body": "Kull kumment imur dritt għand l-aġent — il-PDF jaġġorna waħdu.",
 
@@ -83,6 +88,8 @@ const mt: Messages = {
   "composer.verb.delete": "ħassar",
   "composer.mode": "modalità",
   "composer.area": "Żona · p. {page}",
+  "composer.sketch": "Abbozz · p. {page}",
+  "sketch.hint": "Ittajpja biex tikkummenta · ⌘Z neħħi · Esc warrab",
 
   "comment.deleteText": "Ħassar dan it-test.",
   "comment.deleteArea": "Ħassar din iż-żona.",

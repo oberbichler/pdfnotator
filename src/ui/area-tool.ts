@@ -1,6 +1,7 @@
 /** Rectangle tool: drag a region on a page to comment on it with a screenshot. */
 import { t } from "../i18n";
 import { clamp, isTiny, type NRect, rectFromPoints } from "../lib/geometry";
+import { touchedWords } from "../lib/sketch";
 import { nextCommentId, state } from "../store";
 import type { PageView, Viewer } from "../viewer";
 import { closeComposer, openComposer } from "./composer";
@@ -68,9 +69,10 @@ export function commentArea(viewer: Viewer, pv: PageView, rect: NRect, band: HTM
 
 /**
  * Text of the page's text layer inside `rect`, clipped per character
- * (pdf.js spans usually cover whole lines).
+ * (pdf.js spans usually cover whole lines) — or, with `wholeWords`, every
+ * word with at least one character inside.
  */
-export function textInRect(pv: PageView, rect: NRect): string {
+export function textInRect(pv: PageView, rect: NRect, wholeWords = false): string {
   if (!pv.textLayer) return "";
   const page = pv.el.getBoundingClientRect();
   const x1 = page.left + rect[0] * page.width;
@@ -87,15 +89,16 @@ export function textInRect(pv: PageView, rect: NRect): string {
     const node = span.firstChild;
     if (node?.nodeType !== Node.TEXT_NODE) continue;
     const str = node.textContent ?? "";
-    let inside = "";
+    const hit: boolean[] = [];
     for (let i = 0; i < str.length; i++) {
       range.setStart(node, i);
       range.setEnd(node, i + 1);
       const c = range.getBoundingClientRect();
       const cx = c.left + c.width / 2;
       const cy = c.top + c.height / 2;
-      if (cx >= x1 && cx <= x2 && cy >= y1 && cy <= y2) inside += str[i];
+      hit.push(cx >= x1 && cx <= x2 && cy >= y1 && cy <= y2);
     }
+    const inside = wholeWords ? touchedWords(str, hit) : [...str].filter((_, i) => hit[i]).join("");
     if (!inside.trim()) continue;
     const line = lines.find((l) => Math.abs(l.top - b.top) < b.height * 0.5);
     if (line) line.text += ` ${inside}`;

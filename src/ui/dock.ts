@@ -2,12 +2,15 @@
 import { type Tool, update } from "../store";
 import type { Viewer } from "../viewer";
 import { byId } from "./dom";
+import { clearSketch } from "./sketch-tool";
 
 const ZOOM_STEP = 1.15;
 
 export function setTool(tool: Tool): void {
   update((s) => (s.tool = tool));
   document.body.classList.toggle("mode-area", tool === "area");
+  document.body.classList.toggle("mode-draw", tool === "draw");
+  if (tool !== "draw") clearSketch();
   for (const b of document.querySelectorAll<HTMLButtonElement>("#tools button")) {
     const active = b.dataset.tool === tool;
     b.classList.toggle("active", active);

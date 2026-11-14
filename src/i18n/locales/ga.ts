@@ -43,6 +43,10 @@ const ga: Messages = {
 
   "tool.text": "Roghnaigh téacs",
   "tool.area": "Marcáil limistéar",
+  "tool.draw": "Tarraing",
+  "shape.pen": "Saorlámh",
+  "shape.arrow": "Saighead",
+  "shape.rect": "Dronuilleog",
   "zoom.in": "Zúmáil isteach",
   "zoom.out": "Zúmáil amach",
   "zoom.fit": "Oiriúnaigh don leithead",
@@ -54,6 +58,7 @@ const ga: Messages = {
   "resolved.show": "Taispeáin na cinn réitithe",
   "hint.text": "Roghnaigh téacs",
   "hint.area": "Marcáil limistéar",
+  "hint.draw": "Tarraing ar an leathanach",
   "hint.delete": "Scrios an rogha",
   "hint.body": "Téann gach trácht díreach chuig an ngníomhaire — nuashonraíonn an PDF é féin.",
 
@@ -84,6 +89,8 @@ const ga: Messages = {
   "composer.verb.delete": "scrios",
   "composer.mode": "mód",
   "composer.area": "Limistéar · lch. {page}",
+  "composer.sketch": "Sceitse · lch. {page}",
+  "sketch.hint": "Clóscríobh chun trácht · ⌘Z cealaigh · Esc caith uait",
 
   "comment.deleteText": "Scrios an téacs seo.",
   "comment.deleteArea": "Scrios an limistéar seo.",

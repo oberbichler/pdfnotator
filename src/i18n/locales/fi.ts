@@ -36,6 +36,10 @@ const fi: Messages = {
 
   "tool.text": "Valitse tekstiä",
   "tool.area": "Merkitse alue",
+  "tool.draw": "Piirrä",
+  "shape.pen": "Vapaa käsi",
+  "shape.arrow": "Nuoli",
+  "shape.rect": "Suorakulmio",
   "zoom.in": "Lähennä",
   "zoom.out": "Loitonna",
   "zoom.fit": "Sovita leveyteen",
@@ -47,6 +51,7 @@ const fi: Messages = {
   "resolved.show": "Näytä valmiit",
   "hint.text": "Valitse tekstiä",
   "hint.area": "Merkitse alue",
+  "hint.draw": "Piirrä sivulle",
   "hint.delete": "Poista valinta",
   "hint.body": "Jokainen kommentti menee suoraan agentille – PDF päivittyy itsestään.",
 
@@ -71,6 +76,8 @@ const fi: Messages = {
   "composer.verb.delete": "poista",
   "composer.mode": "tila",
   "composer.area": "Alue · s. {page}",
+  "composer.sketch": "Luonnos · s. {page}",
+  "sketch.hint": "Kirjoita kommentoidaksesi · ⌘Z kumoa · Esc hylkää",
 
   "comment.deleteText": "Poista tämä teksti.",
   "comment.deleteArea": "Poista tämä alue.",

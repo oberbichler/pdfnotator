@@ -36,6 +36,10 @@ const el: Messages = {
 
   "tool.text": "Επιλογή κειμένου",
   "tool.area": "Σήμανση περιοχής",
+  "tool.draw": "Σχεδίαση",
+  "shape.pen": "Ελεύθερο χέρι",
+  "shape.arrow": "Βέλος",
+  "shape.rect": "Ορθογώνιο",
   "zoom.in": "Μεγέθυνση",
   "zoom.out": "Σμίκρυνση",
   "zoom.fit": "Προσαρμογή στο πλάτος",
@@ -47,6 +51,7 @@ const el: Messages = {
   "resolved.show": "Εμφάνιση ολοκληρωμένων",
   "hint.text": "Επιλογή κειμένου",
   "hint.area": "Σήμανση περιοχής",
+  "hint.draw": "Σχεδιάστε στη σελίδα",
   "hint.delete": "Διαγραφή επιλογής",
   "hint.body": "Κάθε σχόλιο πηγαίνει κατευθείαν στον agent — το PDF ενημερώνεται μόνο του.",
 
@@ -71,6 +76,8 @@ const el: Messages = {
   "composer.verb.delete": "διαγραφή",
   "composer.mode": "λειτουργία",
   "composer.area": "Περιοχή · σ. {page}",
+  "composer.sketch": "Σκίτσο · σ. {page}",
+  "sketch.hint": "Πληκτρολογήστε για σχόλιο · ⌘Z αναίρεση · Esc απόρριψη",
 
   "comment.deleteText": "Διάγραψε αυτό το κείμενο.",
   "comment.deleteArea": "Διάγραψε αυτή την περιοχή.",

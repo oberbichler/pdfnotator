@@ -36,6 +36,10 @@ const de: Messages = {
 
   "tool.text": "Text markieren",
   "tool.area": "Bereich aufziehen",
+  "tool.draw": "Zeichnen",
+  "shape.pen": "Freihand",
+  "shape.arrow": "Pfeil",
+  "shape.rect": "Rechteck",
   "zoom.in": "Vergrößern",
   "zoom.out": "Verkleinern",
   "zoom.fit": "Breite einpassen",
@@ -47,6 +51,7 @@ const de: Messages = {
   "resolved.show": "Erledigte einblenden",
   "hint.text": "Text markieren",
   "hint.area": "Bereich aufziehen",
+  "hint.draw": "Ins PDF zeichnen",
   "hint.delete": "Auswahl löschen lassen",
   "hint.body": "Jeder Kommentar landet direkt beim Agenten – die PDF aktualisiert sich von selbst.",
 
@@ -71,6 +76,8 @@ const de: Messages = {
   "composer.verb.delete": "löschen",
   "composer.mode": "Modus",
   "composer.area": "Bereich · S. {page}",
+  "composer.sketch": "Skizze · S. {page}",
+  "sketch.hint": "Tippen zum Kommentieren · ⌘Z rückgängig · Esc verwerfen",
 
   "comment.deleteText": "Diesen Text löschen.",
   "comment.deleteArea": "Diesen Bereich löschen.",

@@ -9,6 +9,7 @@ import { toggleNavigator } from "./navigator";
 import { closeSearch, isSearchOpen, openSearch, step } from "./search";
 import { pdfSelection, selectionAction } from "./selection";
 import { focusMessageBox, toggleSidebar } from "./sidebar";
+import { clearSketch, commentSketch, cycleShape, hasSketch, undoShape } from "./sketch-tool";
 import { cycleTab, selectTab } from "./tabs";
 
 /** Shortcuts with ⌘ (macOS) / Ctrl, matched on `KeyboardEvent.code` where layouts differ. */
@@ -41,9 +42,31 @@ function modifierShortcut(e: KeyboardEvent, viewer: Viewer, openFile: () => void
       return () => toggleSidebar();
     case "enter":
       return () => void sendDrafts();
+    case "z":
+      return !e.shiftKey && !isEditing(e.target) && hasSketch() ? undoShape : undefined;
     default:
       return undefined;
   }
+}
+
+/**
+ * Keys of the draw tool: ⇥ switches the shape; with a sketch on the page,
+ * typing opens the comment box (the keystroke becomes its first character)
+ * and Esc discards the sketch. Returns true if the key was handled.
+ */
+function drawKey(e: KeyboardEvent): boolean {
+  if (e.key === "Tab") {
+    cycleShape(e.shiftKey ? -1 : 1);
+    return true;
+  }
+  if (isComposerOpen() || !hasSketch()) return false;
+  if (e.key === "Escape") {
+    clearSketch();
+    return true;
+  }
+  if (e.key === "Enter") return commentSketch();
+  if (e.key.length === 1 && e.key !== " ") return commentSketch(e.key);
+  return false;
 }
 
 export function initKeyboard(viewer: Viewer, openFile: () => void): void {
@@ -65,13 +88,17 @@ export function initKeyboard(viewer: Viewer, openFile: () => void): void {
     if (isEditing(e.target) || e.altKey) return;
 
     const key = e.key.toLowerCase();
+    if (state.tool === "draw" && drawKey(e)) {
+      e.preventDefault();
+      return;
+    }
     const selection = pdfSelection();
     if (key === "escape") {
       if (isComposerOpen()) closeComposer();
       else if (isSearchOpen()) closeSearch();
       else if (selection) selection.removeAllRanges();
       else if (activeDoc()?.selectedId) selectComment(null);
-      else if (state.tool === "area") setTool("text");
+      else if (state.tool !== "text") setTool("text");
       return;
     }
     if (selection) {
@@ -92,6 +119,9 @@ export function initKeyboard(viewer: Viewer, openFile: () => void): void {
     switch (key) {
       case "r":
         setTool(state.tool === "area" ? "text" : "area");
+        break;
+      case "d":
+        setTool(state.tool === "draw" ? "text" : "draw");
         break;
       case "t":
       case "v":

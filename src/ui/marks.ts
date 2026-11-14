@@ -4,9 +4,11 @@
  */
 import { displayNumber } from "../lib/comments";
 import type { NRect } from "../lib/geometry";
+import { shapeBounds } from "../lib/sketch";
 import { activeDoc, type State, subscribe } from "../store";
 import type { Viewer } from "../viewer";
 import { h } from "./dom";
+import { sketchSvg } from "./sketch-tool";
 
 export function placeRect(el: HTMLElement, r: NRect): void {
   el.style.left = `${r[0] * 100}%`;
@@ -24,6 +26,20 @@ export function renderMarks(viewer: Viewer, s: State): void {
     if (c.status === "resolved" && c.id !== doc?.selectedId) continue;
     const pv = viewer.pages[c.page - 1];
     if (!pv) continue;
+    if (c.sketch && c.rect) {
+      // the strokes themselves, plus an invisible box carrying the pin
+      const strokes = sketchSvg(c.sketch, { w: pv.w, h: pv.h }, `mark sketch-strokes ${c.status}`);
+      strokes.classList.toggle("selected", c.id === doc?.selectedId);
+      strokes.dataset.id = c.id;
+      // pin at the top-left corner of the first shape, like area marks
+      const [px, py] = c.sketch[0] ? shapeBounds(c.sketch[0]) : c.rect;
+      const box = h("div", `mark sketch ${c.status}`);
+      box.dataset.id = c.id;
+      placeRect(box, [px, py, 0, 0]);
+      box.append(h("span", "pin", displayNumber(c.id)));
+      pv.overlay.append(strokes, box);
+      continue;
+    }
     const rects = c.kind === "area" && c.rect ? [c.rect] : (c.rects ?? []);
     rects.forEach((r, i) => {
       const mark = h("div", `mark ${c.kind} ${c.status}`);

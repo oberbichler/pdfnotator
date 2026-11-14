@@ -1,6 +1,7 @@
 /** Comment model and the rules that turn user input into agent instructions. */
 import { t } from "../i18n";
 import type { NRect } from "./geometry";
+import type { Shape, ShapePayload } from "./sketch";
 
 export type CommentKind = "text" | "area" | "general";
 export type CommentStatus = "draft" | "sent" | "delivered" | "resolved";
@@ -25,6 +26,12 @@ export interface Comment {
   /** Page text around a text selection (helps the agent find the spot). */
   context?: string;
   areaText?: string;
+  /** Sketch drawn on the page (area comments only); `rect` is its padded bounding box. */
+  sketch?: Shape[];
+  /** The sketch described for the agent. */
+  sketchInfo?: ShapePayload[];
+  /** Full-resolution screenshot of a sketch's region without the sketch. */
+  clean?: string;
   status: CommentStatus;
   createdAt: number;
 }
@@ -38,6 +45,8 @@ export type CommentDraft = Omit<Comment, "comment" | "status" | "createdAt"> & {
 export interface Screenshot {
   image: string;
   preview: string;
+  /** The region without what was drawn on top (sketches only). */
+  clean?: string;
 }
 
 export interface AgentMessage {
@@ -58,6 +67,8 @@ export interface FeedbackPayload {
   preview: string | null;
   areaText: string | null;
   context: string | null;
+  shapes: ShapePayload[];
+  clean: string | null;
 }
 
 export function toPayload(c: Comment): FeedbackPayload {
@@ -72,6 +83,8 @@ export function toPayload(c: Comment): FeedbackPayload {
     preview: c.preview ?? null,
     areaText: c.areaText ?? null,
     context: c.context ?? null,
+    shapes: c.sketchInfo ?? [],
+    clean: c.clean ?? null,
   };
 }
 

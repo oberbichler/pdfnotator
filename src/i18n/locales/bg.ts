@@ -39,6 +39,10 @@ const bg: Messages = {
 
   "tool.text": "Избор на текст",
   "tool.area": "Маркиране на област",
+  "tool.draw": "Рисуване",
+  "shape.pen": "Свободна ръка",
+  "shape.arrow": "Стрелка",
+  "shape.rect": "Правоъгълник",
   "zoom.in": "Увеличаване",
   "zoom.out": "Намаляване",
   "zoom.fit": "Побиране по ширина",
@@ -50,6 +54,7 @@ const bg: Messages = {
   "resolved.show": "Показване на решените",
   "hint.text": "Изберете текст",
   "hint.area": "Маркирайте област",
+  "hint.draw": "Рисувайте върху страницата",
   "hint.delete": "Изтриване на избраното",
   "hint.body": "Всеки коментар отива директно при агента – PDF файлът се обновява сам.",
 
@@ -77,6 +82,8 @@ const bg: Messages = {
   "composer.verb.delete": "изтриване",
   "composer.mode": "режим",
   "composer.area": "Област · с. {page}",
+  "composer.sketch": "Скица · с. {page}",
+  "sketch.hint": "Пишете, за да коментирате · ⌘Z отмяна · Esc отхвърляне",
 
   "comment.deleteText": "Изтрий този текст.",
   "comment.deleteArea": "Изтрий тази област.",

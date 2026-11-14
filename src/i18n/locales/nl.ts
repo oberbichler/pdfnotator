@@ -39,6 +39,10 @@ const nl: Messages = {
 
   "tool.text": "Tekst selecteren",
   "tool.area": "Gebied markeren",
+  "tool.draw": "Tekenen",
+  "shape.pen": "Uit de vrije hand",
+  "shape.arrow": "Pijl",
+  "shape.rect": "Rechthoek",
   "zoom.in": "Inzoomen",
   "zoom.out": "Uitzoomen",
   "zoom.fit": "Passend in breedte",
@@ -50,6 +54,7 @@ const nl: Messages = {
   "resolved.show": "Afgehandelde tonen",
   "hint.text": "Tekst selecteren",
   "hint.area": "Een gebied markeren",
+  "hint.draw": "Teken op de pagina",
   "hint.delete": "Selectie verwijderen",
   "hint.body": "Elke opmerking gaat direct naar de agent – de pdf werkt zichzelf bij.",
 
@@ -74,6 +79,8 @@ const nl: Messages = {
   "composer.verb.delete": "verwijderen",
   "composer.mode": "modus",
   "composer.area": "Gebied · p. {page}",
+  "composer.sketch": "Schets · p. {page}",
+  "sketch.hint": "Typ om te reageren · ⌘Z ongedaan maken · Esc weggooien",
 
   "comment.deleteText": "Verwijder deze tekst.",
   "comment.deleteArea": "Verwijder dit gebied.",

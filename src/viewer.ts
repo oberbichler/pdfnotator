@@ -506,7 +506,15 @@ export class Viewer {
    * image and a small preview (longest side ≤ {@link PREVIEW_SIZE} px) that is
    * cheap to send to an agent.
    */
-  async captureRegion(pageIndex: number, r: NRect): Promise<{ image: string; preview: string }> {
+  /**
+   * Render a page region as PNG. `draw` paints on top of it in page points
+   * (the result then also carries the region without the drawing).
+   */
+  async captureRegion(
+    pageIndex: number,
+    r: NRect,
+    draw?: (ctx: CanvasRenderingContext2D) => void,
+  ): Promise<{ image: string; preview: string; clean?: string }> {
     if (!this.doc) throw new Error("no document loaded");
     const page = await this.doc.getPage(pageIndex + 1);
     const base = page.getViewport({ scale: 1 });
@@ -522,6 +530,16 @@ export class Viewer {
       transform: [1, 0, 0, 1, -r[0] * vp.width, -r[1] * vp.height],
     }).promise;
     const toBase64 = (c: HTMLCanvasElement) => c.toDataURL("image/png").split(",")[1] ?? "";
+    let clean: string | undefined;
+    const ctx2d = draw && canvas.getContext("2d");
+    if (draw && ctx2d) {
+      clean = toBase64(canvas);
+      ctx2d.save();
+      ctx2d.translate(-r[0] * vp.width, -r[1] * vp.height);
+      ctx2d.scale(s, s);
+      draw(ctx2d);
+      ctx2d.restore();
+    }
     const shrink = Math.min(1, PREVIEW_SIZE / Math.max(canvas.width, canvas.height));
     let preview = canvas;
     if (shrink < 1) {
@@ -534,7 +552,7 @@ export class Viewer {
         ctx.drawImage(canvas, 0, 0, preview.width, preview.height);
       }
     }
-    return { image: toBase64(canvas), preview: toBase64(preview) };
+    return { image: toBase64(canvas), preview: toBase64(preview), clean };
   }
 }
 

@@ -39,6 +39,10 @@ const da: Messages = {
 
   "tool.text": "Markér tekst",
   "tool.area": "Markér område",
+  "tool.draw": "Tegn",
+  "shape.pen": "Frihånd",
+  "shape.arrow": "Pil",
+  "shape.rect": "Rektangel",
   "zoom.in": "Zoom ind",
   "zoom.out": "Zoom ud",
   "zoom.fit": "Tilpas til bredde",
@@ -50,6 +54,7 @@ const da: Messages = {
   "resolved.show": "Vis færdige",
   "hint.text": "Markér tekst",
   "hint.area": "Markér et område",
+  "hint.draw": "Tegn på siden",
   "hint.delete": "Slet markering",
   "hint.body": "Hver kommentar går direkte til agenten – PDF'en opdaterer sig selv.",
 
@@ -74,6 +79,8 @@ const da: Messages = {
   "composer.verb.delete": "slet",
   "composer.mode": "tilstand",
   "composer.area": "Område · s. {page}",
+  "composer.sketch": "Skitse · s. {page}",
+  "sketch.hint": "Skriv for at kommentere · ⌘Z fortryd · Esc kassér",
 
   "comment.deleteText": "Slet denne tekst.",
   "comment.deleteArea": "Slet dette område.",

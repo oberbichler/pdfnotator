@@ -41,6 +41,10 @@ const fr: Messages = {
 
   "tool.text": "Sélectionner du texte",
   "tool.area": "Marquer une zone",
+  "tool.draw": "Dessiner",
+  "shape.pen": "Main levée",
+  "shape.arrow": "Flèche",
+  "shape.rect": "Rectangle",
   "zoom.in": "Zoom avant",
   "zoom.out": "Zoom arrière",
   "zoom.fit": "Ajuster à la largeur",
@@ -52,6 +56,7 @@ const fr: Messages = {
   "resolved.show": "Afficher les terminés",
   "hint.text": "Sélectionner du texte",
   "hint.area": "Marquer une zone",
+  "hint.draw": "Dessiner sur la page",
   "hint.delete": "Supprimer la sélection",
   "hint.body": "Chaque commentaire est envoyé directement à l’agent — le PDF se met à jour tout seul.",
 
@@ -76,6 +81,8 @@ const fr: Messages = {
   "composer.verb.delete": "supprimer",
   "composer.mode": "mode",
   "composer.area": "Zone · p. {page}",
+  "composer.sketch": "Croquis · p. {page}",
+  "sketch.hint": "Tapez pour commenter · ⌘Z annuler · Esc effacer",
 
   "comment.deleteText": "Supprime ce texte.",
   "comment.deleteArea": "Supprime cette zone.",

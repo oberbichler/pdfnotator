@@ -8,6 +8,10 @@ All notable changes to this project are documented here. The format is based on
 
 ### Added
 
+- Draw tool (`D`): sketch on the page with freehand strokes, arrows and rectangles (`⇥` switches, `⌘Z` undoes),
+  then start typing to comment. The agent gets the screenshot with the sketch in red plus a description of each
+  shape — the words it encircles or points at and its position and size in mm — and, via `get_comments`, the
+  region without the sketch.
 - Tabs: several documents at once, each with its own comments, agent thread, zoom and scroll position. Agent
   sessions are bound to the document they opened; `wait_for_feedback`, `reply` and `viewer_status` accept an
   optional `path`. Closing a tab ends the agent's feedback loop.

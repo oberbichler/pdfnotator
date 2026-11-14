@@ -40,6 +40,10 @@ const lv: Messages = {
 
   "tool.text": "Atlasīt tekstu",
   "tool.area": "Iezīmēt apgabalu",
+  "tool.draw": "Zīmēt",
+  "shape.pen": "Brīvroka",
+  "shape.arrow": "Bulta",
+  "shape.rect": "Taisnstūris",
   "zoom.in": "Tuvināt",
   "zoom.out": "Tālināt",
   "zoom.fit": "Ietilpināt platumā",
@@ -51,6 +55,7 @@ const lv: Messages = {
   "resolved.show": "Rādīt pabeigtos",
   "hint.text": "Atlasīt tekstu",
   "hint.area": "Iezīmēt apgabalu",
+  "hint.draw": "Zīmējiet lapā",
   "hint.delete": "Dzēst atlasi",
   "hint.body": "Katrs komentārs nonāk tieši pie aģenta – PDF atjauninās pats.",
 
@@ -75,6 +80,8 @@ const lv: Messages = {
   "composer.verb.delete": "dzēst",
   "composer.mode": "režīms",
   "composer.area": "Apgabals · {page}. lpp.",
+  "composer.sketch": "Skice · {page}. lpp.",
+  "sketch.hint": "Rakstiet, lai komentētu · ⌘Z atsaukt · Esc atmest",
 
   "comment.deleteText": "Izdzēs šo tekstu.",
   "comment.deleteArea": "Izdzēs šo apgabalu.",

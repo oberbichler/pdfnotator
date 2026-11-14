@@ -40,7 +40,7 @@ function card(c: Comment, doc: DocState): HTMLElement {
   const head = h("div", "card-head");
   const kind = h("span", "kind");
   kind.append(
-    icon(KIND_ICON[c.kind], 12),
+    icon(c.sketch ? "draw" : KIND_ICON[c.kind], 12),
     document.createTextNode(c.kind === "general" ? t("card.general") : t("card.page", { page: c.page })),
   );
   const status = h("span", "st");

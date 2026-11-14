@@ -45,7 +45,8 @@ pub fn definitions() -> Value {
             "name": "wait_for_feedback",
             "title": "Wait for pdfnotator feedback",
             "description": "Block until the user comments in pdfnotator; returns the comments (compact: quote, page, \
-                comment, small screenshot for areas). Handle them, call reply, then call this again until the user \
+                comment, small screenshot for areas and sketches — a sketch is drawn in red by the user and comes \
+                with a description of each shape and its size in mm). Handle them, call reply, then call this again until the user \
                 is done.",
             "inputSchema": {
                 "type": "object",
@@ -64,7 +65,7 @@ pub fn definitions() -> Value {
             "name": "get_comments",
             "title": "Comment details",
             "description": "Full details of delivered comments: complete quote, page text around it (to locate \
-                ambiguous quotes in the source), full area text and full-resolution screenshot. Use only when the \
+                ambiguous quotes in the source), full area text and full-resolution screenshot (for sketches also without the sketch). Use only when the \
                 compact feedback is not enough.",
             "inputSchema": {
                 "type": "object",

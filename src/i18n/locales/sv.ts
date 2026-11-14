@@ -39,6 +39,10 @@ const sv: Messages = {
 
   "tool.text": "Markera text",
   "tool.area": "Markera område",
+  "tool.draw": "Rita",
+  "shape.pen": "Frihand",
+  "shape.arrow": "Pil",
+  "shape.rect": "Rektangel",
   "zoom.in": "Zooma in",
   "zoom.out": "Zooma ut",
   "zoom.fit": "Anpassa till bredd",
@@ -50,6 +54,7 @@ const sv: Messages = {
   "resolved.show": "Visa klara",
   "hint.text": "Markera text",
   "hint.area": "Markera ett område",
+  "hint.draw": "Rita på sidan",
   "hint.delete": "Radera markering",
   "hint.body": "Varje kommentar går direkt till agenten – PDF:en uppdateras av sig själv.",
 
@@ -74,6 +79,8 @@ const sv: Messages = {
   "composer.verb.delete": "radera",
   "composer.mode": "läge",
   "composer.area": "Område · s. {page}",
+  "composer.sketch": "Skiss · s. {page}",
+  "sketch.hint": "Skriv för att kommentera · ⌘Z ångra · Esc kasta",
 
   "comment.deleteText": "Radera den här texten.",
   "comment.deleteArea": "Radera det här området.",
