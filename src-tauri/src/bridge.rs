@@ -2,8 +2,8 @@
 //! Claude Code, …).
 //!
 //! Static requests (`initialize`, `tools/list`, …) are answered locally, so the
-//! agent can connect without the viewer running. Tool calls are forwarded to the
-//! viewer's HTTP endpoint; the viewer is launched on demand.
+//! agent can connect without the viewer running. Only tool calls are forwarded
+//! to the viewer's HTTP endpoint; the viewer is launched for the first one.
 
 use std::io::{BufRead, Write};
 use std::net::{SocketAddr, TcpStream};
@@ -110,7 +110,16 @@ impl Bridge {
         };
         match mcp::handle_static(&req.method, &req.params) {
             Some(result) => Route::Done(Some(mcp::response(req.id, result))),
-            None => Route::Forward(req),
+            // only tool calls need the viewer; anything else must not launch it
+            // (clients send e.g. `logging/setLevel` when a session starts)
+            None if req.method == "tools/call" => Route::Forward(req),
+            None => Route::Done(Some(mcp::response(
+                req.id,
+                Err((
+                    mcp::code::METHOD_NOT_FOUND,
+                    format!("method not found: {}", req.method),
+                )),
+            ))),
         }
     }
 
@@ -260,6 +269,17 @@ mod tests {
             ),
             Route::Forward(_)
         ));
+    }
+
+    #[test]
+    fn unknown_methods_do_not_launch_the_viewer() {
+        for method in ["logging/setLevel", "completion/complete", "frobnicate"] {
+            let line = format!(r#"{{"jsonrpc":"2.0","id":3,"method":"{method}","params":{{}}}}"#);
+            let Route::Done(Some(r)) = Bridge::route(&line) else {
+                panic!("{method} must be answered locally")
+            };
+            assert_eq!(r["error"]["code"], mcp::code::METHOD_NOT_FOUND, "{method}");
+        }
     }
 
     #[test]
