@@ -2,7 +2,7 @@ name: Release
 
 # Push a tag like `v0.1.0` to build installers for macOS (universal), Windows
 # and Linux, attach them to a GitHub release and update the Homebrew cask in
-# oberbichler/homebrew-tap.
+# oberbichler/homebrew-tap and the Scoop manifest in oberbichler/scoop-bucket.
 on:
   push:
     tags: ["v*"]
@@ -102,6 +102,45 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add Casks/pdfnotator.rb
+          git diff --cached --quiet && exit 0
+          git commit -m "pdfnotator ${version}"
+          for attempt in 1 2 3; do
+            git push && exit 0
+            sleep $((attempt * 5))
+            git pull --rebase
+          done
+          exit 1
+
+  scoop:
+    name: Update Scoop manifest
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write and push the manifest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [ -z "$TAP_TOKEN" ]; then
+            echo "::warning::HOMEBREW_TAP_TOKEN not set, skipping the Scoop update"
+            exit 0
+          fi
+          version="${TAG#v}"
+          exe="PDFnotator_${version}_x64-setup.exe"
+          gh release download "$TAG" -R "$GITHUB_REPOSITORY" -p "$exe"
+          sha=$(sha256sum "$exe" | cut -d' ' -f1)
+          url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${exe}#/dl.7z"
+
+          git clone "https://x-access-token:${TAP_TOKEN}@github.com/oberbichler/scoop-bucket.git" bucket
+          cd bucket
+          jq --indent 4 --arg v "$version" --arg u "$url" --arg h "$sha" \
+            '.version = $v | .architecture."64bit".url = $u | .architecture."64bit".hash = $h' \
+            bucket/pdfnotator.json > manifest.json
+          mv manifest.json bucket/pdfnotator.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bucket/pdfnotator.json
           git diff --cached --quiet && exit 0
           git commit -m "pdfnotator ${version}"
           for attempt in 1 2 3; do

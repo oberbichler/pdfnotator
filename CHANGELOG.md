@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- Windows install via Scoop: `scoop bucket add oberbichler https://github.com/oberbichler/scoop-bucket`, then
+  `scoop install oberbichler/pdfnotator`. Releases update the manifest automatically.
+
 ## [0.2.0] - 2026-11-14
 
 ### Added

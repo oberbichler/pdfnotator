@@ -25,6 +25,10 @@
    # macOS (Homebrew)
    brew install --cask oberbichler/tap/pdfnotator
    brew install typst
+
+   # Windows (Scoop)
+   scoop bucket add oberbichler https://github.com/oberbichler/scoop-bucket
+   scoop install oberbichler/pdfnotator main/typst
    ```
 
 2. **Connect your agent once** — click the agent chip in the title bar and copy the config, or:
