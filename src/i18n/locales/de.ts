@@ -47,6 +47,7 @@ const de: Messages = {
 
   "sidebar.title": "Feedback",
   "sidebar.toggle": "Seitenleiste ein-/ausblenden",
+  "resize.handle": "Ziehen ändert die Breite · Doppelklick setzt zurück",
   "resolved.hide": "Erledigte ausblenden",
   "resolved.show": "Erledigte einblenden",
   "hint.text": "Text markieren",

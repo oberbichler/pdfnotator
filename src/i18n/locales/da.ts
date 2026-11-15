@@ -50,6 +50,7 @@ const da: Messages = {
 
   "sidebar.title": "Feedback",
   "sidebar.toggle": "Vis/skjul sidepanel",
+  "resize.handle": "Træk for at ændre bredden · dobbeltklik for at nulstille",
   "resolved.hide": "Skjul færdige",
   "resolved.show": "Vis færdige",
   "hint.text": "Markér tekst",

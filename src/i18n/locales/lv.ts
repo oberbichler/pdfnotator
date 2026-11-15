@@ -51,6 +51,7 @@ const lv: Messages = {
 
   "sidebar.title": "Atsauksmes",
   "sidebar.toggle": "Rādīt/slēpt sānjoslu",
+  "resize.handle": "Velciet, lai mainītu platumu · dubultklikšķis atiestata",
   "resolved.hide": "Slēpt pabeigtos",
   "resolved.show": "Rādīt pabeigtos",
   "hint.text": "Atlasīt tekstu",

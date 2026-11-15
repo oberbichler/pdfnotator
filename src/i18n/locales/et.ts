@@ -47,6 +47,7 @@ const et: Messages = {
 
   "sidebar.title": "Tagasiside",
   "sidebar.toggle": "Näita/peida külgriba",
+  "resize.handle": "Lohista laiuse muutmiseks · topeltklõps lähtestab",
   "resolved.hide": "Peida lahendatud",
   "resolved.show": "Näita lahendatud",
   "hint.text": "Vali tekst",

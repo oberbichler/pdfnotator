@@ -10,6 +10,13 @@ All notable changes to this project are documented here. The format is based on
 
 - Windows install via Scoop: `scoop bucket add oberbichler https://github.com/oberbichler/scoop-bucket`, then
   `scoop install oberbichler/pdfnotator`. Releases update the manifest automatically.
+- The comment sidebar and the pages/outline panel can be resized by dragging their inner edge (double-click
+  resets); the width is remembered.
+
+### Fixed
+
+- Starting an agent session could launch the viewer: the stdio bridge forwarded every request it did not know
+  (e.g. `logging/setLevel`) to the viewer. Now only tool calls start it.
 
 ## [0.2.0] - 2026-11-14
 

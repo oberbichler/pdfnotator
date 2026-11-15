@@ -51,6 +51,7 @@ const pt: Messages = {
 
   "sidebar.title": "Feedback",
   "sidebar.toggle": "Mostrar/ocultar barra lateral",
+  "resize.handle": "Arraste para redimensionar · duplo clique para repor",
   "resolved.hide": "Ocultar concluídos",
   "resolved.show": "Mostrar concluídos",
   "hint.text": "Selecionar texto",

@@ -52,6 +52,7 @@ const pl: Messages = {
 
   "sidebar.title": "Uwagi",
   "sidebar.toggle": "Pokaż/ukryj pasek boczny",
+  "resize.handle": "Przeciągnij, aby zmienić szerokość · kliknij dwukrotnie, aby przywrócić",
   "resolved.hide": "Ukryj załatwione",
   "resolved.show": "Pokaż załatwione",
   "hint.text": "Zaznacz tekst",

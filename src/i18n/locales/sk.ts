@@ -52,6 +52,7 @@ const sk: Messages = {
 
   "sidebar.title": "Spätná väzba",
   "sidebar.toggle": "Zobraziť/skryť bočný panel",
+  "resize.handle": "Ťahaním zmeníte šírku · dvojklikom obnovíte",
   "resolved.hide": "Skryť vyriešené",
   "resolved.show": "Zobraziť vyriešené",
   "hint.text": "Vybrať text",

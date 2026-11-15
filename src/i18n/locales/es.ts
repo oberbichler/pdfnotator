@@ -51,6 +51,7 @@ const es: Messages = {
 
   "sidebar.title": "Comentarios",
   "sidebar.toggle": "Mostrar/ocultar barra lateral",
+  "resize.handle": "Arrastra para cambiar el ancho · doble clic para restablecer",
   "resolved.hide": "Ocultar resueltos",
   "resolved.show": "Mostrar resueltos",
   "hint.text": "Seleccionar texto",

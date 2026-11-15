@@ -54,6 +54,7 @@ const en = {
 
   "sidebar.title": "Feedback",
   "sidebar.toggle": "Toggle sidebar",
+  "resize.handle": "Drag to resize · double-click to reset",
   "resolved.hide": "Hide resolved",
   "resolved.show": "Show resolved",
   "hint.text": "Select text",

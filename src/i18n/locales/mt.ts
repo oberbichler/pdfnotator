@@ -53,6 +53,7 @@ const mt: Messages = {
 
   "sidebar.title": "Feedback",
   "sidebar.toggle": "Uri/aħbi l-pannell tal-ġenb",
+  "resize.handle": "Kaxkar biex tibdel il-wisa' · ikklikkja darbtejn biex terġa' lura",
   "resolved.hide": "Aħbi dawk solvuti",
   "resolved.show": "Uri dawk solvuti",
   "hint.text": "Agħżel test",

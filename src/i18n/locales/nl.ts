@@ -50,6 +50,7 @@ const nl: Messages = {
 
   "sidebar.title": "Feedback",
   "sidebar.toggle": "Navigatiekolom tonen/verbergen",
+  "resize.handle": "Sleep om de breedte te wijzigen · dubbelklik om te herstellen",
   "resolved.hide": "Afgehandelde verbergen",
   "resolved.show": "Afgehandelde tonen",
   "hint.text": "Tekst selecteren",

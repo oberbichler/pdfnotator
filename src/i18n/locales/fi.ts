@@ -47,6 +47,7 @@ const fi: Messages = {
 
   "sidebar.title": "Palaute",
   "sidebar.toggle": "Näytä/piilota sivupalkki",
+  "resize.handle": "Muuta leveyttä vetämällä · palauta kaksoisnapsautuksella",
   "resolved.hide": "Piilota valmiit",
   "resolved.show": "Näytä valmiit",
   "hint.text": "Valitse tekstiä",

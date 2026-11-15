@@ -52,6 +52,7 @@ const fr: Messages = {
 
   "sidebar.title": "Retours",
   "sidebar.toggle": "Afficher/masquer la barre latérale",
+  "resize.handle": "Faites glisser pour redimensionner · double-clic pour réinitialiser",
   "resolved.hide": "Masquer les terminés",
   "resolved.show": "Afficher les terminés",
   "hint.text": "Sélectionner du texte",

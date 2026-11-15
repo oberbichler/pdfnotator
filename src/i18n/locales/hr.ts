@@ -51,6 +51,7 @@ const hr: Messages = {
 
   "sidebar.title": "Povratne informacije",
   "sidebar.toggle": "Prikaži/sakrij bočnu traku",
+  "resize.handle": "Povucite za promjenu širine · dvostruki klik za vraćanje",
   "resolved.hide": "Sakrij riješene",
   "resolved.show": "Prikaži riješene",
   "hint.text": "Odaberi tekst",

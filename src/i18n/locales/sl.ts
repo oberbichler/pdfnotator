@@ -52,6 +52,7 @@ const sl: Messages = {
 
   "sidebar.title": "Povratne informacije",
   "sidebar.toggle": "Pokaži/skrij stransko vrstico",
+  "resize.handle": "Povlecite za spremembo širine · dvoklik za ponastavitev",
   "resolved.hide": "Skrij rešene",
   "resolved.show": "Pokaži rešene",
   "hint.text": "Izberi besedilo",

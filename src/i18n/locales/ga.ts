@@ -54,6 +54,7 @@ const ga: Messages = {
 
   "sidebar.title": "Aiseolas",
   "sidebar.toggle": "Scoránaigh an barra taoibh",
+  "resize.handle": "Tarraing chun an leithead a athrú · cliceáil faoi dhó chun é a athshocrú",
   "resolved.hide": "Folaigh na cinn réitithe",
   "resolved.show": "Taispeáin na cinn réitithe",
   "hint.text": "Roghnaigh téacs",

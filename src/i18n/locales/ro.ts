@@ -51,6 +51,7 @@ const ro: Messages = {
 
   "sidebar.title": "Feedback",
   "sidebar.toggle": "Afișează/ascunde bara laterală",
+  "resize.handle": "Trageți pentru a redimensiona · dublu clic pentru resetare",
   "resolved.hide": "Ascunde rezolvatele",
   "resolved.show": "Afișează rezolvatele",
   "hint.text": "Selectează text",

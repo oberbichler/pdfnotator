@@ -47,6 +47,7 @@ const hu: Messages = {
 
   "sidebar.title": "Visszajelzés",
   "sidebar.toggle": "Oldalsáv be/ki",
+  "resize.handle": "Húzással átméretezhető · dupla kattintás visszaállítja",
   "resolved.hide": "Megoldottak elrejtése",
   "resolved.show": "Megoldottak megjelenítése",
   "hint.text": "Szöveg kijelölése",

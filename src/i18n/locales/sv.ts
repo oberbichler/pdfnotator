@@ -50,6 +50,7 @@ const sv: Messages = {
 
   "sidebar.title": "Feedback",
   "sidebar.toggle": "Visa/dölj sidofält",
+  "resize.handle": "Dra för att ändra bredd · dubbelklicka för att återställa",
   "resolved.hide": "Dölj klara",
   "resolved.show": "Visa klara",
   "hint.text": "Markera text",

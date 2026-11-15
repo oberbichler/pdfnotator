@@ -770,6 +770,54 @@ body.sidebar-hidden #sidebar {
   margin-right: calc(-1 * var(--sidebar) - 1px);
 }
 
+/* drag handles on the inner edge of the side panels (see ui/resize.ts) */
+#sidebar,
+#navigator {
+  position: relative;
+}
+.resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  z-index: 5;
+  cursor: col-resize;
+  touch-action: none;
+}
+.resize-handle.left {
+  left: -4px;
+}
+.resize-handle.right {
+  right: -4px;
+}
+.resize-handle::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 2px;
+  width: 3px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.15s 0.1s;
+}
+.resize-handle:hover::after,
+body.resizing .resize-handle:active::after {
+  opacity: 0.6;
+}
+body.sidebar-hidden #sidebar .resize-handle,
+body:not(.nav-open) #navigator .resize-handle {
+  display: none;
+}
+body.resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+body.resizing #sidebar,
+body.resizing #navigator {
+  transition: none;
+}
+
 /* navigator (pages & outline) */
 #navigator {
   width: var(--navigator);

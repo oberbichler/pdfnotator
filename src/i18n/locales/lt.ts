@@ -52,6 +52,7 @@ const lt: Messages = {
 
   "sidebar.title": "Atsiliepimai",
   "sidebar.toggle": "Rodyti / slėpti šoninę juostą",
+  "resize.handle": "Vilkite, kad pakeistumėte plotį · dukart spustelėkite, kad atkurtumėte",
   "resolved.hide": "Slėpti atliktus",
   "resolved.show": "Rodyti atliktus",
   "hint.text": "Žymėti tekstą",

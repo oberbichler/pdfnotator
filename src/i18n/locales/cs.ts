@@ -52,6 +52,7 @@ const cs: Messages = {
 
   "sidebar.title": "Zpětná vazba",
   "sidebar.toggle": "Zobrazit/skrýt postranní panel",
+  "resize.handle": "Tažením změníte šířku · dvojklikem obnovíte",
   "resolved.hide": "Skrýt vyřešené",
   "resolved.show": "Zobrazit vyřešené",
   "hint.text": "Vybrat text",
