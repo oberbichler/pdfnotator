@@ -12,7 +12,7 @@ import type { AgentMessage, Comment, CommentStatus } from "./lib/comments";
 import type { ShapeType } from "./lib/sketch";
 import type { ViewState } from "./viewer";
 
-export type Tool = "text" | "area" | "draw";
+export type Tool = "select" | "text" | "area" | "draw";
 export type NavTab = "pages" | "outline";
 
 export interface DocState extends DocStatus {

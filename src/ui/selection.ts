@@ -95,7 +95,7 @@ export function initSelection(v: Viewer): void {
     const target = e.target as HTMLElement;
     if (byId("composer").contains(target)) return;
     const layer = target.closest?.(".textLayer");
-    if (layer && state.tool === "text") {
+    if (layer && (state.tool === "text" || state.tool === "select")) {
       selecting = true;
       layer.classList.add("selecting"); // pdf.js CSS: keeps selection smooth
     }
@@ -109,7 +109,7 @@ export function initSelection(v: Viewer): void {
       viewer.flushTextSwap();
       // never throw away a comment that is still being typed
       if (isComposerOpen() && hasUnsavedText()) return;
-      selectionAction("comment");
+      if (state.tool === "text") selectionAction("comment"); // the select tool only marks
     }, 0);
   });
 

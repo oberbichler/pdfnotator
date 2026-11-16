@@ -58,6 +58,7 @@ Several agents can work on several documents at once — each gets its own tab.
 | Key          | Action                          |
 | ------------ | ------------------------------- |
 | Select text  | Comment (`⇥`: replace · delete) |
+| `V`          | Select only, no comment         |
 | `R`          | Area screenshot                 |
 | `D`          | Draw, then type (`⇥`: shape)    |
 | `/`          | Message to the agent            |

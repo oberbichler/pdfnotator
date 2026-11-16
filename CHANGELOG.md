@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-16
+
+### Added
+
+- Select tool (`V`, arrow icon): mark and copy text without opening the comment box. On a tablet the pen selects
+  text in this mode instead of drawing. The text tool is now called “Comment on text”.
+
 ## [0.6.0] - 2026-11-16
 
 ### Added
@@ -101,7 +108,8 @@ All notable changes to this project are documented here. The format is based on
 - User interface in all 24 official EU languages.
 - File associations for `.typ` and `.pdf`, single-instance hand-over from the command line.
 
-[Unreleased]: ../../compare/v0.6.0...HEAD
+[Unreleased]: ../../compare/v0.7.0...HEAD
+[0.7.0]: ../../compare/v0.6.0...v0.7.0
 [0.6.0]: ../../compare/v0.5.0...v0.6.0
 [0.5.0]: ../../compare/v0.4.0...v0.5.0
 [0.4.0]: ../../compare/v0.3.0...v0.4.0

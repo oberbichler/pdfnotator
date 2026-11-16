@@ -112,7 +112,7 @@ export function initKeyboard(viewer: Viewer, openFile: () => void): void {
       else if (state.tool !== "text") setTool("text");
       return;
     }
-    if (selection) {
+    if (selection && state.tool === "text") {
       const action = {
         c: "comment",
         e: "replace",
@@ -135,8 +135,10 @@ export function initKeyboard(viewer: Viewer, openFile: () => void): void {
         setTool(state.tool === "draw" ? "text" : "draw");
         break;
       case "t":
-      case "v":
         setTool("text");
+        break;
+      case "v":
+        setTool(state.tool === "select" ? "text" : "select");
         break;
       case "/":
       case "m":
