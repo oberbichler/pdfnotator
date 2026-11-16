@@ -461,8 +461,13 @@ body.mode-area .textLayer,
 body.mode-draw .textLayer {
   pointer-events: none;
 }
-body:not(.mode-draw) #shapes {
+body:not(.mode-draw) #shapes,
+body:not(.mode-draw) #sketch-history {
   display: none;
+}
+#sketch-history button:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 /* sketches */
@@ -713,6 +718,9 @@ body:not(.has-doc) #dock {
   color: var(--muted);
   font-size: 12px;
   font-variant-numeric: tabular-nums;
+}
+#page-nav {
+  white-space: nowrap;
 }
 #page-input {
   width: 30px;

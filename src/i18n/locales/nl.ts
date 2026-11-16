@@ -96,6 +96,8 @@ const nl: Messages = {
   "tablet.failed": "Tablet kon niet worden gekoppeld: {error}",
   "tablet.stopped": "Delen met tablet gestopt",
   "sketch.hintTouch": "Tik om te reageren",
+  "sketch.undo": "Ongedaan maken",
+  "sketch.redo": "Opnieuw",
 
   "comment.deleteText": "Verwijder deze tekst.",
   "comment.deleteArea": "Verwijder dit gebied.",

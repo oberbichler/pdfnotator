@@ -105,6 +105,8 @@ const ga: Messages = {
   "tablet.failed": "Níorbh fhéidir an táibléad a cheangal: {error}",
   "tablet.stopped": "Stopadh an chomhroinnt leis an táibléad",
   "sketch.hintTouch": "Tapáil chun trácht a dhéanamh",
+  "sketch.undo": "Cealaigh",
+  "sketch.redo": "Athdhéan",
 
   "comment.deleteText": "Scrios an téacs seo.",
   "comment.deleteArea": "Scrios an limistéar seo.",

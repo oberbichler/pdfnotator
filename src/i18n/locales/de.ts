@@ -92,6 +92,8 @@ const de: Messages = {
   "tablet.failed": "Tablet konnte nicht verbunden werden: {error}",
   "tablet.stopped": "Tablet-Freigabe beendet",
   "sketch.hintTouch": "Tippen zum Kommentieren",
+  "sketch.undo": "Rückgängig",
+  "sketch.redo": "Wiederholen",
 
   "comment.deleteText": "Diesen Text löschen.",
   "comment.deleteArea": "Diesen Bereich löschen.",

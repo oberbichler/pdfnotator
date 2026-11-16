@@ -100,6 +100,8 @@ const hr: Messages = {
   "tablet.failed": "Tablet se nije mogao povezati: {error}",
   "tablet.stopped": "Dijeljenje s tabletom zaustavljeno",
   "sketch.hintTouch": "Dodirnite za komentar",
+  "sketch.undo": "Poništi",
+  "sketch.redo": "Ponovi",
 
   "comment.deleteText": "Izbriši ovaj tekst.",
   "comment.deleteArea": "Izbriši ovo područje.",

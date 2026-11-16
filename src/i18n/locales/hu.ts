@@ -94,6 +94,8 @@ const hu: Messages = {
   "tablet.failed": "A táblagép nem csatlakoztatható: {error}",
   "tablet.stopped": "A táblagép-megosztás leállt",
   "sketch.hintTouch": "Koppints a megjegyzéshez",
+  "sketch.undo": "Visszavonás",
+  "sketch.redo": "Újra",
 
   "comment.deleteText": "Töröld ezt a szöveget.",
   "comment.deleteArea": "Töröld ezt a területet.",

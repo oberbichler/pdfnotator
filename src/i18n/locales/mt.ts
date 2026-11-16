@@ -104,6 +104,8 @@ const mt: Messages = {
   "tablet.failed": "Ma setax jiġi kkonnettjat it-tablet: {error}",
   "tablet.stopped": "Il-qsim mat-tablet twaqqaf",
   "sketch.hintTouch": "Agħfas biex tikkummenta",
+  "sketch.undo": "Erġa' lura",
+  "sketch.redo": "Erġa' agħmel",
 
   "comment.deleteText": "Ħassar dan it-test.",
   "comment.deleteArea": "Ħassar din iż-żona.",

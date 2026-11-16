@@ -102,6 +102,8 @@ const sk: Messages = {
   "tablet.failed": "Tablet sa nepodarilo pripojiť: {error}",
   "tablet.stopped": "Zdieľanie s tabletom ukončené",
   "sketch.hintTouch": "Ťuknutím pridáte komentár",
+  "sketch.undo": "Späť",
+  "sketch.redo": "Znova",
 
   "comment.deleteText": "Vymaž tento text.",
   "comment.deleteArea": "Vymaž túto oblasť.",

@@ -9,7 +9,16 @@ import { toggleNavigator } from "./navigator";
 import { closeSearch, isSearchOpen, openSearch, step } from "./search";
 import { pdfSelection, selectionAction } from "./selection";
 import { focusMessageBox, toggleSidebar } from "./sidebar";
-import { clearSketch, commentSketch, cycleShape, hasSketch, undoShape } from "./sketch-tool";
+import {
+  canRedo,
+  canUndo,
+  clearSketch,
+  commentSketch,
+  cycleShape,
+  hasSketch,
+  redoShape,
+  undoShape,
+} from "./sketch-tool";
 import { cycleTab, selectTab } from "./tabs";
 
 /** Shortcuts with ⌘ (macOS) / Ctrl, matched on `KeyboardEvent.code` where layouts differ. */
@@ -43,7 +52,9 @@ function modifierShortcut(e: KeyboardEvent, viewer: Viewer, openFile: () => void
     case "enter":
       return () => void sendDrafts();
     case "z":
-      return !e.shiftKey && !isEditing(e.target) && hasSketch() ? undoShape : undefined;
+      if (isEditing(e.target)) return undefined;
+      if (e.shiftKey) return canRedo() ? redoShape : undefined;
+      return canUndo() ? undoShape : undefined;
     default:
       return undefined;
   }

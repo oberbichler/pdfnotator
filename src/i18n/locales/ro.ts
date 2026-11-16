@@ -96,6 +96,8 @@ const ro: Messages = {
   "tablet.failed": "Tableta nu a putut fi conectată: {error}",
   "tablet.stopped": "Partajarea cu tableta a fost oprită",
   "sketch.hintTouch": "Atinge pentru a comenta",
+  "sketch.undo": "Anulează",
+  "sketch.redo": "Refă",
 
   "comment.deleteText": "Șterge acest text.",
   "comment.deleteArea": "Șterge această zonă.",

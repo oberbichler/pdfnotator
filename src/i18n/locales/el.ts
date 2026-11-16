@@ -93,6 +93,8 @@ const el: Messages = {
   "tablet.failed": "Δεν ήταν δυνατή η σύνδεση του tablet: {error}",
   "tablet.stopped": "Η κοινή χρήση με το tablet διακόπηκε",
   "sketch.hintTouch": "Πατήστε για σχόλιο",
+  "sketch.undo": "Αναίρεση",
+  "sketch.redo": "Επανάληψη",
 
   "comment.deleteText": "Διάγραψε αυτό το κείμενο.",
   "comment.deleteArea": "Διάγραψε αυτή την περιοχή.",

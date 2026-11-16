@@ -14,6 +14,8 @@ All notable changes to this project are documented here. The format is based on
   pairing token from the QR code (stored as a cookie), and **Stop sharing** locks the tablet out again.
   `PDFNOTATOR_REMOTE=1` starts sharing on launch and prints the URL, `PDFNOTATOR_REMOTE_PORT` sets the port
   (default 4748).
+- Draw tool: undo and redo buttons next to the shapes (`⌘Z` / `⇧⌘Z`); redo also brings back shapes after the last
+  one was undone.
 
 ## [0.5.0] - 2026-11-16
 

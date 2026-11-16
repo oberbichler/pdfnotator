@@ -102,6 +102,8 @@ const lt: Messages = {
   "tablet.failed": "Nepavyko prijungti planšetės: {error}",
   "tablet.stopped": "Bendrinimas su planšete sustabdytas",
   "sketch.hintTouch": "Bakstelėkite, kad komentuotumėte",
+  "sketch.undo": "Anuliuoti",
+  "sketch.redo": "Grąžinti",
 
   "comment.deleteText": "Ištrink šį tekstą.",
   "comment.deleteArea": "Ištrink šią sritį.",

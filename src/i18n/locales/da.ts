@@ -95,6 +95,8 @@ const da: Messages = {
   "tablet.failed": "Kunne ikke forbinde tabletten: {error}",
   "tablet.stopped": "Deling med tablet stoppet",
   "sketch.hintTouch": "Tryk for at kommentere",
+  "sketch.undo": "Fortryd",
+  "sketch.redo": "Gentag",
 
   "comment.deleteText": "Slet denne tekst.",
   "comment.deleteArea": "Slet dette område.",

@@ -98,6 +98,8 @@ const bg: Messages = {
   "tablet.failed": "Таблетът не може да бъде свързан: {error}",
   "tablet.stopped": "Споделянето с таблета е спряно",
   "sketch.hintTouch": "Докоснете, за да коментирате",
+  "sketch.undo": "Отмяна",
+  "sketch.redo": "Повторение",
 
   "comment.deleteText": "Изтрий този текст.",
   "comment.deleteArea": "Изтрий тази област.",

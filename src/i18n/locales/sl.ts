@@ -102,6 +102,8 @@ const sl: Messages = {
   "tablet.failed": "Tablice ni bilo mogoče povezati: {error}",
   "tablet.stopped": "Deljenje s tablico ustavljeno",
   "sketch.hintTouch": "Tapnite za komentar",
+  "sketch.undo": "Razveljavi",
+  "sketch.redo": "Uveljavi",
 
   "comment.deleteText": "Izbriši to besedilo.",
   "comment.deleteArea": "Izbriši to območje.",

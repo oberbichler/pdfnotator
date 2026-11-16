@@ -92,6 +92,8 @@ const et: Messages = {
   "tablet.failed": "Tahvelarvutit ei saanud ühendada: {error}",
   "tablet.stopped": "Tahvelarvutiga jagamine lõpetatud",
   "sketch.hintTouch": "Puuduta kommenteerimiseks",
+  "sketch.undo": "Võta tagasi",
+  "sketch.redo": "Tee uuesti",
 
   "comment.deleteText": "Kustuta see tekst.",
   "comment.deleteArea": "Kustuta see ala.",

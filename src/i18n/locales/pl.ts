@@ -102,6 +102,8 @@ const pl: Messages = {
   "tablet.failed": "Nie udało się połączyć tabletu: {error}",
   "tablet.stopped": "Udostępnianie tabletowi zatrzymane",
   "sketch.hintTouch": "Stuknij, aby skomentować",
+  "sketch.undo": "Cofnij",
+  "sketch.redo": "Ponów",
 
   "comment.deleteText": "Usuń ten tekst.",
   "comment.deleteArea": "Usuń ten obszar.",

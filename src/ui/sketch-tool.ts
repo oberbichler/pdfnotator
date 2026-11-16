@@ -43,6 +43,8 @@ interface Pending {
 let viewer: Viewer;
 let pending: Pending | null = null;
 let current: Shape | null = null;
+/** Shapes taken back with undo (newest last), and the page they were on. */
+let undone: { pv: PageView; shapes: Shape[] } | null = null;
 /** A pen (Apple Pencil) was used: from then on fingers scroll instead of drawing. */
 let penSeen = false;
 /** Input for a note being typed, with the point it was placed at. */
@@ -107,19 +109,50 @@ export function hasSketch(): boolean {
   return !!pending?.shapes.length;
 }
 
+/** Discard the sketch (sent, Esc, other tool), including what undo could bring back. */
 export function clearSketch(): void {
+  undone = null;
+  dropLayer();
+}
+
+/** Remove the sketch from the page; the redo stack survives. */
+function dropLayer(): void {
   dropNote();
   pending?.layer.remove();
   pending?.hint.remove();
   pending = null;
   current = null;
+  syncHistory();
 }
 
+export const canUndo = (): boolean => !!pending?.shapes.length && !current;
+export const canRedo = (): boolean => !!undone?.shapes.length && undone.pv.el.isConnected && !current;
+
 export function undoShape(): void {
-  if (!pending) return;
-  pending.shapes.pop();
+  if (!pending || !canUndo()) return;
+  const shape = pending.shapes.pop();
+  if (shape) {
+    if (undone?.pv !== pending.pv) undone = { pv: pending.pv, shapes: [] };
+    undone.shapes.push(shape);
+  }
   if (pending.shapes.length) redraw();
-  else clearSketch();
+  else dropLayer();
+}
+
+export function redoShape(): void {
+  if (!undone || !canRedo()) return;
+  const shape = undone.shapes.pop();
+  if (!shape) return;
+  sketchOn(undone.pv).shapes.push(shape);
+  redraw();
+}
+
+/** Enable the undo/redo buttons to match. */
+function syncHistory(): void {
+  const undo = document.getElementById("sketch-undo") as HTMLButtonElement | null;
+  const redo = document.getElementById("sketch-redo") as HTMLButtonElement | null;
+  if (undo) undo.disabled = !canUndo();
+  if (redo) redo.disabled = !canRedo();
 }
 
 export function setShape(shape: ShapeType): void {
@@ -139,6 +172,7 @@ export function cycleShape(step: 1 | -1): void {
 }
 
 function redraw(): void {
+  syncHistory();
   if (!pending) return;
   const page = pageSize(pending.pv);
   fillSvg(pending.layer, pending.shapes, page);
@@ -194,6 +228,7 @@ export function commitNote(): void {
   dropNote();
   if (label) {
     pending.shapes.push(textShape(at, label, measure(label), pageSize(pending.pv)));
+    undone = null;
     redraw();
   } else if (!pending.shapes.length) clearSketch();
 }
@@ -253,8 +288,9 @@ export function endShape(cancel = false): void {
   const shape = current;
   current = null;
   if (cancel || isAccidental(shape, pageSize(pending.pv))) pending.shapes.pop();
+  else undone = null; // a new shape starts a new history
   if (pending.shapes.length) redraw();
-  else clearSketch();
+  else dropLayer();
 }
 
 /** Keep receiving a pointer's events while it leaves the page (best effort). */
@@ -376,6 +412,9 @@ export function commentSketch(initialText = ""): boolean {
 
 export function initSketchTool(v: Viewer): void {
   viewer = v;
+  document.getElementById("sketch-undo")?.addEventListener("click", undoShape);
+  document.getElementById("sketch-redo")?.addEventListener("click", redoShape);
+  syncHistory();
   for (const b of document.querySelectorAll<HTMLButtonElement>("#shapes button")) {
     b.addEventListener("click", () => setShape(b.dataset.shape as ShapeType));
   }

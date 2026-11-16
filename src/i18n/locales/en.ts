@@ -99,6 +99,8 @@ const en = {
   "tablet.failed": "Could not connect a tablet: {error}",
   "tablet.stopped": "Tablet sharing stopped",
   "sketch.hintTouch": "Tap to comment",
+  "sketch.undo": "Undo",
+  "sketch.redo": "Redo",
 
   "comment.deleteText": "Delete this text.",
   "comment.deleteArea": "Delete this area.",

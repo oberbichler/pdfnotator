@@ -98,6 +98,8 @@ const fr: Messages = {
   "tablet.failed": "Impossible de connecter la tablette : {error}",
   "tablet.stopped": "Partage avec la tablette arrêté",
   "sketch.hintTouch": "Touchez pour commenter",
+  "sketch.undo": "Annuler",
+  "sketch.redo": "Rétablir",
 
   "comment.deleteText": "Supprime ce texte.",
   "comment.deleteArea": "Supprime cette zone.",

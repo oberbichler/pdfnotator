@@ -97,6 +97,8 @@ const it: Messages = {
   "tablet.failed": "Impossibile collegare il tablet: {error}",
   "tablet.stopped": "Condivisione con il tablet interrotta",
   "sketch.hintTouch": "Tocca per commentare",
+  "sketch.undo": "Annulla",
+  "sketch.redo": "Ripeti",
 
   "comment.deleteText": "Elimina questo testo.",
   "comment.deleteArea": "Elimina quest’area.",

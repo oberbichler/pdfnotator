@@ -95,6 +95,8 @@ const sv: Messages = {
   "tablet.failed": "Det gick inte att ansluta surfplattan: {error}",
   "tablet.stopped": "Delning med surfplattan stoppad",
   "sketch.hintTouch": "Tryck för att kommentera",
+  "sketch.undo": "Ångra",
+  "sketch.redo": "Gör om",
 
   "comment.deleteText": "Radera den här texten.",
   "comment.deleteArea": "Radera det här området.",

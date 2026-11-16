@@ -96,6 +96,8 @@ const lv: Messages = {
   "tablet.failed": "Neizdevās pievienot planšetdatoru: {error}",
   "tablet.stopped": "Kopīgošana ar planšetdatoru pārtraukta",
   "sketch.hintTouch": "Pieskarieties, lai komentētu",
+  "sketch.undo": "Atsaukt",
+  "sketch.redo": "Atcelt atsaukšanu",
 
   "comment.deleteText": "Izdzēs šo tekstu.",
   "comment.deleteArea": "Izdzēs šo apgabalu.",

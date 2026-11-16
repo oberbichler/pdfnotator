@@ -96,6 +96,8 @@ const pt: Messages = {
   "tablet.failed": "Não foi possível ligar o tablet: {error}",
   "tablet.stopped": "Partilha com o tablet parada",
   "sketch.hintTouch": "Toque para comentar",
+  "sketch.undo": "Anular",
+  "sketch.redo": "Refazer",
 
   "comment.deleteText": "Elimina este texto.",
   "comment.deleteArea": "Elimina esta área.",

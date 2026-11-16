@@ -92,6 +92,8 @@ const fi: Messages = {
   "tablet.failed": "Tablettia ei voitu yhdistää: {error}",
   "tablet.stopped": "Jakaminen tabletille lopetettu",
   "sketch.hintTouch": "Napauta kommentoidaksesi",
+  "sketch.undo": "Kumoa",
+  "sketch.redo": "Tee uudelleen",
 
   "comment.deleteText": "Poista tämä teksti.",
   "comment.deleteArea": "Poista tämä alue.",
