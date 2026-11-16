@@ -22,7 +22,7 @@ fn doc(session: &Session, id: DocId) -> Result<Arc<Document>, String> {
 #[tauri::command]
 pub async fn open_document(session: SessionState<'_>, path: String) -> Result<DocId, String> {
     let session = Arc::clone(&session);
-    tauri::async_runtime::spawn_blocking(move || session.open(&path, None, None))
+    tauri::async_runtime::spawn_blocking(move || session.open(&path, None))
         .await
         .map_err(|e| e.to_string())?
         .map(|(doc, _)| doc.id)

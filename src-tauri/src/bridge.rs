@@ -27,6 +27,7 @@ pub fn run(port: u16) {
     };
     for line in std::io::stdin().lock().lines() {
         let Ok(line) = line else { break };
+        bridge.note_client(&line);
         match Bridge::route(&line) {
             Route::Done(Some(resp)) => write(&resp),
             Route::Done(None) => {}
@@ -71,6 +72,8 @@ pub struct Bridge {
     client_id: String,
     /// Request ids the client cancelled (their responses are dropped).
     cancelled: Mutex<std::collections::HashSet<String>>,
+    /// The agent's name from `initialize` (`clientInfo`), passed on so the viewer can show it.
+    agent: Mutex<Option<String>>,
 }
 
 impl Bridge {
@@ -87,6 +90,20 @@ impl Bridge {
             launch: Mutex::new(()),
             client_id: uuid::Uuid::new_v4().to_string(),
             cancelled: Mutex::default(),
+            agent: Mutex::default(),
+        }
+    }
+
+    /// Remember the agent's name when the client introduces itself.
+    fn note_client(&self, line: &str) {
+        if !line.contains("\"initialize\"") {
+            return;
+        }
+        if let Ok(msg) = serde_json::from_str::<Value>(line)
+            && msg.get("method").and_then(Value::as_str) == Some("initialize")
+            && let Some(name) = mcp::client_name(msg.get("params").unwrap_or(&Value::Null))
+        {
+            *self.agent.lock().unwrap() = Some(name);
         }
     }
 
@@ -167,11 +184,15 @@ impl Bridge {
 
     fn post_raw(&self, body: &str) -> Result<ureq::http::Response<ureq::Body>, String> {
         let url = format!("http://127.0.0.1:{}/mcp", self.port);
+        // copy the name: a guard held across `send` would block every other
+        // request while a wait_for_feedback is in flight
+        let agent = self.agent.lock().unwrap().clone().unwrap_or_default();
         self.http
             .post(&url)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .header(crate::http::SESSION_HEADER, &self.client_id)
+            .header(crate::http::AGENT_HEADER, &agent)
             .send(body)
             .map_err(|e| e.to_string())
     }
@@ -306,7 +327,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let pdf = dir.path().join("a.pdf");
         std::fs::write(&pdf, b"%PDF").unwrap();
-        session.open(pdf.to_str().unwrap(), None, None).unwrap();
+        session.open(pdf.to_str().unwrap(), None).unwrap();
         let doc = session.documents()[0].clone();
 
         let bridge = Arc::new(Bridge::new(port));
@@ -339,9 +360,15 @@ mod tests {
         let listener = rt.block_on(tokio::net::TcpListener::bind("127.0.0.1:0")).unwrap();
         let port = listener.local_addr().unwrap().port();
         let session = Session::new(port);
-        rt.spawn(async move { axum::serve(listener, crate::http::router(session)).await });
+        rt.spawn({
+            let session = session.clone();
+            async move { axum::serve(listener, crate::http::router(session)).await }
+        });
 
         let b = Bridge::new(port);
+        b.note_client(
+            r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"clientInfo":{"name":"copilot-cli","title":"GitHub Copilot CLI"}}}"#,
+        );
         let line = r#"{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"viewer_status"}}"#;
         let Route::Forward(req) = Bridge::route(line) else {
             panic!()
@@ -350,5 +377,10 @@ mod tests {
         assert_eq!(resp["id"], 5);
         let text = resp["result"]["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("Open documents (0)"), "{text}");
+        assert_eq!(
+            session.agent_name(Some(&b.client_id)).as_deref(),
+            Some("GitHub Copilot CLI"),
+            "the viewer learns the agent's name"
+        );
     }
 }

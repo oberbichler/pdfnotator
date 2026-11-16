@@ -6,6 +6,7 @@ const lv: Messages = {
   "agent.none": "Nav aģenta",
   "agent.noneHint": "Pasakiet savam aģentam „atver ar pdfnotator“ vai ielīmējiet sākuma uzvedni.",
   "agent.listening": "Aģents klausās",
+  "agent.listeningAs": "{name} klausās",
   "agent.listeningHint": "Komentāri nonāk pie aģenta uzreiz.",
   "agent.working": "Aģents strādā",
   "agent.workingHint": "Jaunie komentāri tiek apkopoti un nodoti nākamajā izgūšanas reizē.",

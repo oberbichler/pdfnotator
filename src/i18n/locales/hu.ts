@@ -6,6 +6,7 @@ const hu: Messages = {
   "agent.none": "Nincs ügynök",
   "agent.noneHint": "Mondd az ügynöknek: „nyisd meg a pdfnotatorban”, vagy illeszd be az indító promptot.",
   "agent.listening": "Az ügynök figyel",
+  "agent.listeningAs": "{name} figyel",
   "agent.listeningHint": "A megjegyzések azonnal eljutnak az ügynökhöz.",
   "agent.working": "Az ügynök dolgozik",
   "agent.workingHint": "Az új megjegyzéseket összegyűjtjük, és a következő lekéréskor átadjuk.",

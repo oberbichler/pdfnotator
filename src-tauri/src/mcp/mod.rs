@@ -56,6 +56,23 @@ impl Request {
     }
 }
 
+/// The agent's display name from `initialize` params (`clientInfo.title`,
+/// else `clientInfo.name`), reduced to printable ASCII so it fits in a header.
+pub fn client_name(params: &Value) -> Option<String> {
+    let info = params.get("clientInfo")?;
+    let raw = ["title", "name"]
+        .iter()
+        .filter_map(|k| info.get(*k).and_then(Value::as_str))
+        .find(|s| !s.trim().is_empty())?;
+    let name: String = raw
+        .chars()
+        .filter(|c| c.is_ascii_graphic() || *c == ' ')
+        .take(60)
+        .collect();
+    let name = name.trim();
+    (!name.is_empty()).then(|| name.to_owned())
+}
+
 /// Handle methods that don't need the viewer. `None` = not a static method.
 pub fn handle_static(method: &str, params: &Value) -> Option<RpcResult> {
     let result = match method {
@@ -118,6 +135,25 @@ mod tests {
 
     fn call(method: &str, params: Value) -> Value {
         handle_static(method, &params).unwrap().unwrap()
+    }
+
+    #[test]
+    fn reads_the_client_name() {
+        let named = |info: Value| client_name(&json!({ "clientInfo": info }));
+        assert_eq!(
+            named(json!({ "name": "copilot", "title": "GitHub Copilot" })).as_deref(),
+            Some("GitHub Copilot")
+        );
+        assert_eq!(
+            named(json!({ "name": "claude-code" })).as_deref(),
+            Some("claude-code")
+        );
+        assert_eq!(
+            named(json!({ "name": "Visual Studio Code ✓" })).as_deref(),
+            Some("Visual Studio Code")
+        );
+        assert_eq!(named(json!({ "name": " " })), None);
+        assert_eq!(client_name(&json!({})), None);
     }
 
     #[test]
@@ -246,7 +282,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let pdf = dir.path().join("a.pdf");
         std::fs::write(&pdf, b"%PDF").unwrap();
-        s.open(pdf.to_str().unwrap(), None, Some("agent")).unwrap();
+        s.open(pdf.to_str().unwrap(), None).unwrap();
         let doc = s.documents()[0].clone();
 
         let waiting = start_wait(&s, "agent", 1).await;
@@ -276,7 +312,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let pdf = dir.path().join("a.pdf");
         std::fs::write(&pdf, b"%PDF").unwrap();
-        s.open(pdf.to_str().unwrap(), None, Some("agent")).unwrap();
+        s.open(pdf.to_str().unwrap(), None).unwrap();
         let doc = s.documents()[0].clone();
 
         let stale = start_wait(&s, "agent", 1).await;

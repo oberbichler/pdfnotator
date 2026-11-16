@@ -1,5 +1,5 @@
 /** Agent status chip, connect menu and compile-error banner (for the active tab). */
-import { type MessageKey, onLocaleChange, t } from "../i18n";
+import { onLocaleChange, t } from "../i18n";
 import { activeDoc, type State, state, subscribe } from "../store";
 import { byId, h } from "./dom";
 import { icon } from "./icons";
@@ -8,20 +8,31 @@ import { toast } from "./toast";
 interface AgentState {
   cls: string;
   icon: string;
-  label: MessageKey;
+  label: string;
   hint: string;
+}
+
+/** "Agent listening", or with the agents' names when they told us. */
+export function listeningLabel(agents: readonly string[] | undefined): string {
+  return agents?.length ? t("agent.listeningAs", { name: agents.join(", ") }) : t("agent.listening");
 }
 
 /** Derive what the agent of the active tab is currently doing. */
 export function agentState(s: State): AgentState {
   const doc = activeDoc(s);
-  if (s.serverError) return { cls: "err", icon: "unplug", label: "agent.serverError", hint: s.serverError };
+  if (s.serverError)
+    return { cls: "err", icon: "unplug", label: t("agent.serverError"), hint: s.serverError };
   if (doc && doc.listeners > 0) {
-    return { cls: "on", icon: "listening", label: "agent.listening", hint: t("agent.listeningHint") };
+    return {
+      cls: "on",
+      icon: "listening",
+      label: listeningLabel(doc.agents),
+      hint: t("agent.listeningHint"),
+    };
   }
   if (doc?.agentSeen)
-    return { cls: "busy", icon: "spinner", label: "agent.working", hint: t("agent.workingHint") };
-  return { cls: "", icon: "plug", label: "agent.none", hint: t("agent.noneHint") };
+    return { cls: "busy", icon: "spinner", label: t("agent.working"), hint: t("agent.workingHint") };
+  return { cls: "", icon: "plug", label: t("agent.none"), hint: t("agent.noneHint") };
 }
 
 const mcpUrl = (s: State) => `http://127.0.0.1:${s.port}/mcp`;
@@ -73,7 +84,7 @@ function render(s: State): void {
   chip.title = st.hint;
   chip.querySelector(".chip-icon")?.replaceChildren(icon(st.icon, 14));
   const label = chip.querySelector(".chip-label");
-  if (label) label.textContent = t(st.label);
+  if (label) label.textContent = st.label;
   chip.querySelector(".chip-badge")?.remove();
   const doc = activeDoc(s);
   if (doc && doc.pending > 0 && doc.listeners === 0) {
@@ -85,7 +96,7 @@ function render(s: State): void {
   const head = byId("connect-menu").querySelector(".menu-head");
   if (head) head.className = `menu-head ${st.cls}`;
   byId("menu-status-icon").replaceChildren(icon(st.icon, 16));
-  byId("menu-status-title").textContent = t(st.label);
+  byId("menu-status-title").textContent = st.label;
   byId("menu-status-sub").textContent = st.hint;
   byId("mcp-url").textContent = mcpUrl(s);
 

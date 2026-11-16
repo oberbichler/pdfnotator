@@ -13,6 +13,7 @@ const en = {
   "agent.none": "No agent",
   "agent.noneHint": "Tell your agent “open in pdfnotator” or paste the start prompt.",
   "agent.listening": "Agent listening",
+  "agent.listeningAs": "{name} listening",
   "agent.listeningHint": "Comments reach the agent immediately.",
   "agent.working": "Agent working",
   "agent.workingHint": "New comments are collected and handed over with the next fetch.",

@@ -6,6 +6,7 @@ const et: Messages = {
   "agent.none": "Agent puudub",
   "agent.noneHint": "Ütle oma agendile „ava pdfnotatoris“ või kleebi alustusviip.",
   "agent.listening": "Agent kuulab",
+  "agent.listeningAs": "{name} kuulab",
   "agent.listeningHint": "Kommentaarid jõuavad agendini kohe.",
   "agent.working": "Agent töötab",
   "agent.workingHint": "Uued kommentaarid kogutakse ja antakse üle järgmisel pärimisel.",

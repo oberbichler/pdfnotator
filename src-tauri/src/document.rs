@@ -35,6 +35,8 @@ pub struct DocStatus {
     pub version: u64,
     /// Agents currently blocked in `wait_for_feedback` for this document.
     pub listeners: usize,
+    /// Names of those agents, as far as they told us (MCP `clientInfo`).
+    pub agents: Vec<String>,
     /// Comments waiting to be fetched by the agent.
     pub pending: usize,
     pub current_page: u32,
@@ -50,12 +52,16 @@ pub struct Opened {
 }
 
 /// Why `wait_for_feedback` returned without comments.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum WaitEnd {
     TimedOut,
     Closed,
-    /// A newer `wait_for_feedback` for this document took over.
-    Superseded,
+    /// A newer `wait_for_feedback` for this document took over: from the
+    /// same agent session (`by` is `None`) or from another one (its name, or
+    /// "another agent").
+    Superseded {
+        by: Option<String>,
+    },
     Cancelled,
 }
 
@@ -73,6 +79,27 @@ struct Inner {
 /// Called whenever the document's status changed (to refresh the UI).
 pub type OnChange = Arc<dyn Fn() + Send + Sync>;
 
+/// Who is waiting in `wait_for_feedback`.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Waiter {
+    /// Agent session id.
+    pub client: Option<String>,
+    /// Agent name for the UI.
+    pub name: Option<String>,
+}
+
+/// Removes a waiter when its wait ends (also if the call is dropped).
+struct WaiterGuard<'a> {
+    doc: &'a Document,
+    token: u64,
+}
+
+impl Drop for WaiterGuard<'_> {
+    fn drop(&mut self) {
+        self.doc.waiters.lock().unwrap().retain(|(t, _)| *t != self.token);
+    }
+}
+
 /// Delivered comments kept for `get_comments` (newest last).
 const HISTORY_LIMIT: usize = 200;
 
@@ -87,6 +114,11 @@ pub struct Document {
     version: AtomicU64,
     reload_generation: AtomicU64,
     compiles: AtomicU64,
+    /// Agents in `wait_for_feedback`, oldest first, with a token per wait.
+    waiters: Mutex<Vec<(u64, Waiter)>>,
+    /// The newest wait's agent: who superseded the older ones.
+    latest_waiter: Mutex<Waiter>,
+    next_wait: AtomicU64,
 }
 
 impl std::fmt::Debug for Document {
@@ -109,6 +141,9 @@ impl Document {
             version: AtomicU64::new(0),
             reload_generation: AtomicU64::new(0),
             compiles: AtomicU64::new(0),
+            waiters: Mutex::default(),
+            latest_waiter: Mutex::default(),
+            next_wait: AtomicU64::new(0),
         })
     }
 
@@ -121,6 +156,18 @@ impl Document {
             compile_error: inner.compile_error.clone(),
             version: self.version.load(Ordering::SeqCst),
             listeners: self.feedback.listeners(),
+            agents: {
+                let mut names: Vec<String> = self
+                    .waiters
+                    .lock()
+                    .unwrap()
+                    .iter()
+                    .filter_map(|(_, w)| w.name.clone())
+                    .collect();
+                names.sort();
+                names.dedup();
+                names
+            },
             pending: self.feedback.len(),
             current_page: inner.current_page,
             page_count: inner.page_count,
@@ -330,11 +377,35 @@ impl Document {
         timeout: Duration,
         cancel: &tokio::sync::Notify,
     ) -> Result<Vec<FeedbackItem>, WaitEnd> {
-        let items = match self.feedback.wait(timeout, cancel, || self.changed()).await {
+        self.wait_for_feedback_as(timeout, cancel, Waiter::default())
+            .await
+    }
+
+    /// [`Self::wait_for_feedback`] for the agent `waiter` (shown in the UI;
+    /// tells a superseded wait whether another agent took over).
+    pub async fn wait_for_feedback_as(
+        &self,
+        timeout: Duration,
+        cancel: &tokio::sync::Notify,
+        waiter: Waiter,
+    ) -> Result<Vec<FeedbackItem>, WaitEnd> {
+        let token = self.next_wait.fetch_add(1, Ordering::SeqCst);
+        *self.latest_waiter.lock().unwrap() = waiter.clone();
+        self.waiters.lock().unwrap().push((token, waiter.clone()));
+        let guard = WaiterGuard { doc: self, token };
+        let outcome = self.feedback.wait(timeout, cancel, || self.changed()).await;
+        drop(guard);
+        self.changed();
+        let items = match outcome {
             WaitOutcome::Items(items) => items,
             WaitOutcome::TimedOut => return Err(WaitEnd::TimedOut),
             WaitOutcome::Closed => return Err(WaitEnd::Closed),
-            WaitOutcome::Superseded => return Err(WaitEnd::Superseded),
+            WaitOutcome::Superseded => {
+                let latest = self.latest_waiter.lock().unwrap().clone();
+                let by = (latest.client != waiter.client)
+                    .then(|| latest.name.unwrap_or_else(|| "another agent".to_owned()));
+                return Err(WaitEnd::Superseded { by });
+            }
             WaitOutcome::Cancelled => return Err(WaitEnd::Cancelled),
         };
         {

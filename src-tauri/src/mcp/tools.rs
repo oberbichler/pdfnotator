@@ -1,9 +1,9 @@
 //! MCP tools exposed to the agent.
 //!
 //! Several agents can work on several documents at once. A call is routed to a
-//! document by its `path` argument, otherwise by the agent session that opened
-//! it (see [`Session::resolve`]). Tool results always repeat the path so that
-//! agents pass it along.
+//! document by its `path` argument (see [`Session::resolve`]), never by the
+//! agent session: chats may share one MCP connection. Tool results always
+//! repeat the path so that agents pass it along.
 
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -15,13 +15,13 @@ use tokio::sync::Notify;
 use std::fmt::Write as _;
 
 use super::text::{compile_note, details_content, feedback_content, text};
-use crate::document::{Document, WaitEnd};
+use crate::document::{Document, WaitEnd, Waiter};
 use crate::session::Session;
 
 const DEFAULT_WAIT: Duration = Duration::from_secs(600);
 const MAX_WAIT: Duration = Duration::from_secs(3600);
 
-const PATH_PARAM: &str = "Document path from open_pdf; needed only when several documents are open.";
+const PATH_PARAM: &str = "Document path, as returned by open_pdf";
 
 pub fn definitions() -> Value {
     json!([
@@ -57,7 +57,8 @@ pub fn definitions() -> Value {
                         "minimum": 0,
                         "description": "Max wait (default 600; 0 = only fetch queued comments)"
                     }
-                }
+                },
+                "required": ["path"]
             },
             "annotations": { "readOnlyHint": false, "destructiveHint": false, "idempotentHint": false, "openWorldHint": false }
         },
@@ -73,7 +74,7 @@ pub fn definitions() -> Value {
                     "ids": { "type": "array", "items": { "type": "string" }, "description": "Comment ids, e.g. [\"c3\"]" },
                     "path": { "type": "string", "description": PATH_PARAM }
                 },
-                "required": ["ids"]
+                "required": ["ids", "path"]
             },
             "annotations": { "readOnlyHint": true, "openWorldHint": false }
         },
@@ -89,7 +90,7 @@ pub fn definitions() -> Value {
                     "message": { "type": "string", "description": "One line, e.g. what you changed" },
                     "resolved_ids": { "type": "array", "items": { "type": "string" } }
                 },
-                "required": ["message"]
+                "required": ["path", "message"]
             },
             "annotations": { "readOnlyHint": false, "destructiveHint": false, "idempotentHint": false, "openWorldHint": false }
         },
@@ -113,20 +114,26 @@ pub async fn call(session: &Arc<Session>, client: Option<&str>, params: &Value, 
     let args = params.get("arguments").cloned().unwrap_or_else(|| json!({}));
     let path = args.get("path").and_then(Value::as_str);
     let result = match name {
-        "open_pdf" => open_pdf(session, client, &args).await,
-        "wait_for_feedback" => match session.resolve(path, client) {
-            Ok(doc) => Ok(wait_for_feedback(&doc, &args, cancel).await),
+        "open_pdf" => open_pdf(session, &args).await,
+        "wait_for_feedback" => match session.resolve(path) {
+            Ok(doc) => {
+                let waiter = Waiter {
+                    client: client.map(str::to_owned),
+                    name: session.agent_name(client),
+                };
+                Ok(wait_for_feedback(&doc, &args, cancel, waiter).await)
+            }
             Err(e) => Err(e),
         },
-        "reply" => match session.resolve(path, client) {
+        "reply" => match session.resolve(path) {
             Ok(doc) => Ok(reply(&doc, &args).await),
             Err(e) => Err(e),
         },
-        "get_comments" => match session.resolve(path, client) {
+        "get_comments" => match session.resolve(path) {
             Ok(doc) => get_comments(&doc, &args),
             Err(e) => Err(e),
         },
-        "viewer_status" => Ok(viewer_status(session, path, client)),
+        "viewer_status" => Ok(viewer_status(session, path)),
         _ => Err(format!("unknown tool: {name}")),
     };
     match result {
@@ -143,20 +150,18 @@ fn doc_path(doc: &Document) -> String {
         .unwrap_or_default()
 }
 
-async fn open_pdf(session: &Arc<Session>, client: Option<&str>, args: &Value) -> Result<Vec<Value>, String> {
+async fn open_pdf(session: &Arc<Session>, args: &Value) -> Result<Vec<Value>, String> {
     let path = args
         .get("path")
         .and_then(Value::as_str)
         .ok_or("missing 'path'")?
         .to_owned();
     let root = args.get("root").and_then(Value::as_str).map(PathBuf::from);
-    let client = client.map(str::to_owned);
     // `open` blocks while typst compiles for the first time.
     let session = Arc::clone(session);
-    let (doc, opened) =
-        tokio::task::spawn_blocking(move || session.open(&path, root.as_deref(), client.as_deref()))
-            .await
-            .map_err(|e| e.to_string())??;
+    let (doc, opened) = tokio::task::spawn_blocking(move || session.open(&path, root.as_deref()))
+        .await
+        .map_err(|e| e.to_string())??;
     let how = match &opened.source {
         Some(src) => format!(
             "pdfnotator compiles {} itself (typst watch): just edit the source, the viewer updates automatically.",
@@ -168,21 +173,21 @@ async fn open_pdf(session: &Arc<Session>, client: Option<&str>, args: &Value) ->
     };
     Ok(vec![text(format!(
         "Opened {} in pdfnotator. {how}\nNEXT: call wait_for_feedback with path \"{}\" now and keep looping \
-         (wait → edit → reply → wait) until the user says they are done. Always pass this path — the user may \
-         have several documents open. Do not end your turn.{}",
+         (wait → edit → reply → wait) until the user says they are done. Pass this exact path to every call — \
+         the user may have several documents open with other agents. Do not end your turn.{}",
         opened.pdf.display(),
         doc_path(&doc),
         compile_note(opened.compile_error.as_deref())
     ))])
 }
 
-async fn wait_for_feedback(doc: &Document, args: &Value, cancel: &Notify) -> Vec<Value> {
+async fn wait_for_feedback(doc: &Document, args: &Value, cancel: &Notify, waiter: Waiter) -> Vec<Value> {
     let timeout = args
         .get("timeout_seconds")
         .and_then(Value::as_u64)
         .map_or(DEFAULT_WAIT, Duration::from_secs)
         .min(MAX_WAIT);
-    let items = match doc.wait_for_feedback(timeout, cancel).await {
+    let items = match doc.wait_for_feedback_as(timeout, cancel, waiter).await {
         Ok(items) => items,
         Err(WaitEnd::Closed) => {
             return vec![text(format!(
@@ -190,10 +195,17 @@ async fn wait_for_feedback(doc: &Document, args: &Value, cancel: &Notify) -> Vec
                 doc_path(doc)
             ))];
         }
-        Err(WaitEnd::Superseded) => {
+        Err(WaitEnd::Superseded { by: None }) => {
             return vec![text(
                 "A newer wait_for_feedback call for this document took over — ignore this result.",
             )];
+        }
+        Err(WaitEnd::Superseded { by: Some(agent) }) => {
+            return vec![text(format!(
+                "{agent} is now waiting for feedback on {} — it took this document over. Stop calling \
+                 wait_for_feedback for it and tell the user, unless they ask you to take it back.",
+                doc_path(doc)
+            ))];
         }
         Err(WaitEnd::Cancelled) => return vec![text("Cancelled.")],
         Err(WaitEnd::TimedOut) => Vec::new(),
@@ -250,9 +262,9 @@ fn get_comments(doc: &Document, args: &Value) -> Result<Vec<Value>, String> {
 }
 
 /// Compact one-line-per-field status (cheaper than pretty JSON).
-fn viewer_status(session: &Session, path: Option<&str>, client: Option<&str>) -> Vec<Value> {
+fn viewer_status(session: &Session, path: Option<&str>) -> Vec<Value> {
     let mut out = String::new();
-    if let Ok(doc) = session.resolve(path, client) {
+    if let Ok(doc) = session.resolve(path) {
         let st = doc.status();
         let _ = writeln!(out, "Document: {}", doc_path(&doc));
         let _ = writeln!(out, "User is on page {}/{}", st.current_page, st.page_count);
@@ -332,7 +344,7 @@ mod tests {
             &Notify::new(),
             &session,
             Some("a"),
-            &json!({ "name": "wait_for_feedback", "arguments": { "timeout_seconds": 0 } }),
+            &json!({ "name": "wait_for_feedback", "arguments": { "timeout_seconds": 0, "path": file } }),
         )
         .await;
         assert!(result_text(&r).contains("[c1] general"));
@@ -368,18 +380,16 @@ mod tests {
         docs[0].submit(vec![item("c1")]);
         docs[1].submit(vec![item("c2")]);
 
-        let wait = json!({ "name": "wait_for_feedback", "arguments": { "timeout_seconds": 0 } });
-        assert!(result_text(&call(&Notify::new(), &session, Some("two"), &wait).await).contains("[c2]"));
-        assert!(result_text(&call(&Notify::new(), &session, Some("one"), &wait).await).contains("[c1]"));
+        let wait = |p: &PathBuf| json!({ "name": "wait_for_feedback", "arguments": { "timeout_seconds": 0, "path": p } });
+        // chats sharing one connection ("same") still reach their own document
+        assert!(result_text(&call(&Notify::new(), &session, Some("same"), &wait(&b)).await).contains("[c2]"));
+        assert!(result_text(&call(&Notify::new(), &session, Some("same"), &wait(&a)).await).contains("[c1]"));
 
-        // an unknown client must say which document it means
-        let r = call(&Notify::new(), &session, Some("three"), &wait).await;
+        // without a path there is no guessing, not even for the agent that opened a document
+        let no_path = json!({ "name": "wait_for_feedback", "arguments": { "timeout_seconds": 0 } });
+        let r = call(&Notify::new(), &session, Some("one"), &no_path).await;
         assert_eq!(r["isError"], true);
         assert!(result_text(&r).contains("pass `path`"));
-        docs[1].submit(vec![item("c3")]);
-        let by_path =
-            json!({ "name": "wait_for_feedback", "arguments": { "timeout_seconds": 0, "path": b } });
-        assert!(result_text(&call(&Notify::new(), &session, Some("three"), &by_path).await).contains("[c3]"));
 
         let r = call(
             &Notify::new(),
@@ -391,6 +401,41 @@ mod tests {
         let status = result_text(&r);
         assert!(status.contains("Open documents (2)"), "{status}");
         assert!(status.contains(&format!("Document: {}", a.display())), "{status}");
+    }
+
+    #[tokio::test]
+    async fn another_agent_taking_over_is_reported() {
+        let session = Session::new(0);
+        session.set_agent_name("cli", "GitHub Copilot CLI");
+        let dir = tempfile::tempdir().unwrap();
+        let file = pdf(&dir, "x.pdf");
+        call(
+            &Notify::new(),
+            &session,
+            Some("vscode"),
+            &json!({ "name": "open_pdf", "arguments": { "path": file } }),
+        )
+        .await;
+        let doc = session.documents()[0].clone();
+        let wait = json!({ "name": "wait_for_feedback", "arguments": { "path": file } });
+        let first = {
+            let (session, wait) = (session.clone(), wait.clone());
+            tokio::spawn(async move { call(&Notify::new(), &session, Some("vscode"), &wait).await })
+        };
+        while doc.feedback.listeners() == 0 {
+            tokio::task::yield_now().await;
+        }
+        let second = {
+            let (session, wait) = (session.clone(), wait.clone());
+            tokio::spawn(async move { call(&Notify::new(), &session, Some("cli"), &wait).await })
+        };
+        let text = result_text(&first.await.unwrap());
+        assert!(text.contains("GitHub Copilot CLI is now waiting"), "{text}");
+        assert!(text.contains("Stop calling wait_for_feedback"), "{text}");
+        assert_eq!(doc.status().agents, vec!["GitHub Copilot CLI".to_owned()]);
+        doc.submit(vec![item("c1")]);
+        assert!(result_text(&second.await.unwrap()).contains("[c1]"));
+        assert_eq!(doc.status().agents, Vec::<String>::new());
     }
 
     #[tokio::test]

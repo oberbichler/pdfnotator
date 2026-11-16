@@ -122,7 +122,7 @@ fn run_viewer(port: u16, file: Option<String>) {
             if let Some(file) = file {
                 let session = session.clone();
                 std::thread::spawn(move || {
-                    if let Err(e) = session.open(&paths::absolutize(&file), None, None) {
+                    if let Err(e) = session.open(&paths::absolutize(&file), None) {
                         eprintln!("pdfnotator: {e}");
                     }
                 });
@@ -139,7 +139,7 @@ fn run_viewer(port: u16, file: Option<String>) {
             if let Some(path) = urls.into_iter().find_map(|u| u.to_file_path().ok()) {
                 let session = exit_session.clone();
                 std::thread::spawn(move || {
-                    if let Err(e) = session.open(&path.display().to_string(), None, None) {
+                    if let Err(e) = session.open(&path.display().to_string(), None) {
                         eprintln!("pdfnotator: {e}");
                     }
                 });

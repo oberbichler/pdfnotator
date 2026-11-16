@@ -6,6 +6,7 @@ const lt: Messages = {
   "agent.none": "Nėra agento",
   "agent.noneHint": "Pasakykite savo agentui „atidaryk su pdfnotator“ arba įklijuokite pradžios užklausą.",
   "agent.listening": "Agentas klausosi",
+  "agent.listeningAs": "{name} klausosi",
   "agent.listeningHint": "Komentarai agentą pasiekia iš karto.",
   "agent.working": "Agentas dirba",
   "agent.workingHint": "Nauji komentarai surenkami ir perduodami kito gavimo metu.",

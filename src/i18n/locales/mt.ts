@@ -6,6 +6,7 @@ const mt: Messages = {
   "agent.none": "L-ebda aġent",
   "agent.noneHint": "Għid lill-aġent tiegħek “iftaħ f’pdfnotator” jew waħħal il-prompt tal-bidu.",
   "agent.listening": "L-aġent qed jisma’",
+  "agent.listeningAs": "{name} qed jisma'",
   "agent.listeningHint": "Il-kummenti jaslu għand l-aġent minnufih.",
   "agent.working": "L-aġent qed jaħdem",
   "agent.workingHint": "Il-kummenti l-ġodda jinġabru u jingħataw fil-ġbir li jmiss.",

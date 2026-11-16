@@ -22,11 +22,17 @@ describe("agent status", () => {
   afterEach(() => setLocale("en"));
 
   it("derives the chip state", () => {
-    expect(agentState(withDoc()).label).toBe("agent.none");
+    expect(agentState(withDoc()).label).toBe("No agent");
     expect(agentState(withDoc({ listeners: 1 })).cls).toBe("on");
-    expect(agentState(withDoc({}, true)).label).toBe("agent.working");
+    expect(agentState(withDoc({ listeners: 1 })).label).toBe("Agent listening");
+    expect(agentState(withDoc({}, true)).label).toBe("Agent working");
     expect(agentState(withDoc({ listeners: 1 }, false, "port busy")).hint).toBe("port busy");
-    expect(agentState({ ...state, docs: [], activeId: null }).label).toBe("agent.none");
+    expect(agentState({ ...state, docs: [], activeId: null }).label).toBe("No agent");
+  });
+
+  it("names the listening agents", () => {
+    const s = withDoc({ listeners: 2, agents: ["GitHub Copilot CLI", "Claude Code"] });
+    expect(agentState(s).label).toBe("GitHub Copilot CLI, Claude Code listening");
   });
 
   it("builds the start prompt from the source file", () => {

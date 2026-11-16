@@ -6,6 +6,7 @@ const ro: Messages = {
   "agent.none": "Niciun agent",
   "agent.noneHint": "Spuneți agentului „deschide în pdfnotator” sau lipiți promptul de pornire.",
   "agent.listening": "Agentul ascultă",
+  "agent.listeningAs": "{name} ascultă",
   "agent.listeningHint": "Comentariile ajung imediat la agent.",
   "agent.working": "Agentul lucrează",
   "agent.workingHint": "Comentariile noi sunt adunate și predate la următoarea preluare.",

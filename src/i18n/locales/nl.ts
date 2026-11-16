@@ -6,6 +6,7 @@ const nl: Messages = {
   "agent.none": "Geen agent",
   "agent.noneHint": "Zeg tegen je agent ‘open in pdfnotator’ of plak de startprompt.",
   "agent.listening": "Agent luistert",
+  "agent.listeningAs": "{name} luistert",
   "agent.listeningHint": "Opmerkingen komen direct bij de agent aan.",
   "agent.working": "Agent is bezig",
   "agent.workingHint": "Nieuwe opmerkingen worden verzameld en bij de volgende ophaalbeurt overgedragen.",

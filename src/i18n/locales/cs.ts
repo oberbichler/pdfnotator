@@ -6,6 +6,7 @@ const cs: Messages = {
   "agent.none": "Žádný agent",
   "agent.noneHint": "Řekněte agentovi „otevři v pdfnotator“ nebo vložte úvodní prompt.",
   "agent.listening": "Agent naslouchá",
+  "agent.listeningAs": "{name} naslouchá",
   "agent.listeningHint": "Komentáře se k agentovi dostanou okamžitě.",
   "agent.working": "Agent pracuje",
   "agent.workingHint": "Nové komentáře se shromažďují a předají se při příštím vyzvednutí.",

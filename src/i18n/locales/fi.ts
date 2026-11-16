@@ -6,6 +6,7 @@ const fi: Messages = {
   "agent.none": "Ei agenttia",
   "agent.noneHint": "Sano agentillesi ”avaa pdfnotatorissa” tai liitä aloituskehote.",
   "agent.listening": "Agentti kuuntelee",
+  "agent.listeningAs": "{name} kuuntelee",
   "agent.listeningHint": "Kommentit välittyvät agentille heti.",
   "agent.working": "Agentti työskentelee",
   "agent.workingHint": "Uudet kommentit kerätään ja luovutetaan seuraavassa haussa.",
