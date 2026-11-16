@@ -5,15 +5,17 @@
  */
 import { clamp, type NRect } from "./geometry";
 
-export type ShapeType = "pen" | "arrow" | "rect";
-export const SHAPE_TYPES: readonly ShapeType[] = ["pen", "arrow", "rect"];
+export type ShapeType = "pen" | "arrow" | "rect" | "text";
+export const SHAPE_TYPES: readonly ShapeType[] = ["pen", "arrow", "rect", "text"];
 
 export type Point = [x: number, y: number];
 
 export interface Shape {
   type: ShapeType;
-  /** Pen: the whole stroke; arrow and rectangle: start and end. */
+  /** Pen: the whole stroke; arrow and rectangle: start and end; text: its box (top-left, bottom-right). */
   points: Point[];
+  /** Typed note (text shapes). */
+  label?: string;
 }
 
 /** Page size in PDF points. */
@@ -25,6 +27,12 @@ export interface PageSize {
 /** Stroke width on paper, in points. */
 export const STROKE_PT = 2;
 export const SKETCH_COLOR = "#e11d48";
+/** Typed notes: font size on paper in points, and the font (also used to measure them). */
+export const TEXT_PT = 11;
+export const TEXT_FONT = `600 ${TEXT_PT}px -apple-system, "Segoe UI", system-ui, sans-serif`;
+/** Line box of a note relative to its font size, and where the baseline sits in it. */
+const TEXT_LINE = 1.3;
+const TEXT_BASELINE = 0.95;
 
 const MM_PER_PT = 25.4 / 72;
 const mm = (pt: number) => Math.round(pt * MM_PER_PT);
@@ -42,10 +50,13 @@ export interface ShapePayload {
   text?: string;
   fromText?: string;
   toText?: string;
+  /** Typed note (text shapes). */
+  label?: string;
 }
 
 /** Extend the shape being drawn by `p` (pen: append unless too close; others: move the end point). */
 export function extendShape(shape: Shape, p: Point, page: PageSize, minPt = 1): void {
+  if (shape.type === "text") return;
   if (shape.type !== "pen") {
     shape.points = [shape.points[0] ?? p, p];
     return;
@@ -59,6 +70,7 @@ const distPt = (a: Point, b: Point, page: PageSize) =>
 
 /** Shapes smaller than `minPt` in every direction are accidental clicks. */
 export function isAccidental(shape: Shape, page: PageSize, minPt = 3): boolean {
+  if (shape.type === "text") return !shape.label?.trim();
   const [, , w, h] = shapeBounds(shape);
   return w * page.w < minPt && h * page.h < minPt;
 }
@@ -69,6 +81,30 @@ export function shapeBounds(shape: Shape): NRect {
   const x = Math.min(...xs);
   const y = Math.min(...ys);
   return [x, y, Math.max(...xs) - x, Math.max(...ys) - y];
+}
+
+/**
+ * A typed note placed at `p` (left edge, vertically centred), `widthPt` wide
+ * as measured with {@link TEXT_FONT}.
+ */
+export function textShape(p: Point, label: string, widthPt: number, page: PageSize): Shape {
+  const h = (TEXT_PT * TEXT_LINE) / page.h;
+  const x = clamp(p[0], 0, 1);
+  const y = clamp(p[1] - h / 2, 0, 1 - h);
+  return {
+    type: "text",
+    label,
+    points: [
+      [x, y],
+      [Math.min(1, x + widthPt / page.w), y + h],
+    ],
+  };
+}
+
+/** Baseline origin of a text shape in page points. */
+export function textOrigin(shape: Shape, page: PageSize): [number, number] {
+  const [x, y] = shape.points[0] ?? [0, 0];
+  return [f(x * page.w), f(y * page.h + TEXT_PT * TEXT_BASELINE)];
 }
 
 /** Grow a normalised rect by `pt` on every side, clamped to the page. */
@@ -108,6 +144,8 @@ export function shapePath(shape: Shape, page: PageSize): string {
   const [a, b = a] = [pts[0], pts.at(-1)];
   if (!a || !b) return "";
   switch (shape.type) {
+    case "text":
+      return ""; // drawn as text, see textOrigin
     case "rect":
       return `M${a[0]} ${a[1]}H${b[0]}V${b[1]}H${a[0]}Z`;
     case "arrow": {
@@ -156,7 +194,9 @@ export function describeShapes(
       type: shape.type,
       boxMm: [mm(box[0] * page.w), mm(box[1] * page.h), mm(box[2] * page.w), mm(box[3] * page.h)],
     };
-    if (shape.type === "arrow") {
+    if (shape.type === "text") {
+      out.label = shape.label;
+    } else if (shape.type === "arrow") {
       const from = shape.points[0] as Point;
       const to = shape.points.at(-1) as Point;
       out.fromMm = toMm(from);

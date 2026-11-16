@@ -43,6 +43,7 @@ const bg: Messages = {
   "shape.pen": "Свободна ръка",
   "shape.arrow": "Стрелка",
   "shape.rect": "Правоъгълник",
+  "shape.text": "Текст",
   "zoom.in": "Увеличаване",
   "zoom.out": "Намаляване",
   "zoom.fit": "Побиране по ширина",

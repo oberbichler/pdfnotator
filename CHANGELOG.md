@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- Draw tool: typed notes. Pick **Text** (`⇥` cycles through the shapes), click on the page and type; `↩` places
+  the note, `Esc` drops it. Notes are part of the sketch on the screenshot and reach the agent as text.
+
 ## [0.3.0] - 2026-11-15
 
 ### Added

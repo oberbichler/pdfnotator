@@ -40,6 +40,7 @@ const fi: Messages = {
   "shape.pen": "Vapaa käsi",
   "shape.arrow": "Nuoli",
   "shape.rect": "Suorakulmio",
+  "shape.text": "Teksti",
   "zoom.in": "Lähennä",
   "zoom.out": "Loitonna",
   "zoom.fit": "Sovita leveyteen",

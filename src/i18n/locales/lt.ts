@@ -45,6 +45,7 @@ const lt: Messages = {
   "shape.pen": "Laisva ranka",
   "shape.arrow": "Rodyklė",
   "shape.rect": "Stačiakampis",
+  "shape.text": "Tekstas",
   "zoom.in": "Didinti",
   "zoom.out": "Mažinti",
   "zoom.fit": "Pritaikyti pagal plotį",

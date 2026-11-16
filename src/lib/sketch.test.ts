@@ -8,6 +8,9 @@ import {
   type Shape,
   shapePath,
   sketchBounds,
+  TEXT_PT,
+  textOrigin,
+  textShape,
   touchedWords,
 } from "./sketch";
 
@@ -166,5 +169,27 @@ describe("touchedWords", () => {
     const hit = [...str].map((_, i) => i >= 9 && i <= 15); // "gnam al"
     expect(touchedWords(str, hit)).toBe("magnam aliquam");
     expect(touchedWords(str, [])).toBe("");
+  });
+});
+
+describe("text notes", () => {
+  it("sits centred on the click point, as wide as measured", () => {
+    const note = textShape([0.2, 0.5], "bigger", 40, A4);
+    const [x, y, w, h] = sketchBounds([note], A4, 0);
+    expect(x).toBeCloseTo(0.2);
+    expect(w * A4.w).toBeCloseTo(40);
+    expect(y + h / 2).toBeCloseTo(0.5);
+    expect(h * A4.h).toBeGreaterThan(TEXT_PT);
+    const [, by] = textOrigin(note, A4);
+    expect(by).toBeGreaterThan(y * A4.h);
+    expect(by).toBeLessThan((y + h) * A4.h);
+  });
+
+  it("is passed on with its label; empty notes are dropped", () => {
+    const note = textShape([0.2, 0.5], "bigger", 40, A4);
+    expect(shapePath(note, A4)).toBe("");
+    expect(describeShapes([note], A4, () => "ignored")[0]).toMatchObject({ type: "text", label: "bigger" });
+    expect(isAccidental(note, A4)).toBe(false);
+    expect(isAccidental({ ...note, label: " " }, A4)).toBe(true);
   });
 });

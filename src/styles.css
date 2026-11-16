@@ -480,6 +480,35 @@ body:not(.mode-draw) #shapes {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+.sketch-layer text,
+.mark.sketch-strokes text {
+  fill: var(--sketch);
+  stroke: none;
+}
+.sketch-note {
+  position: absolute;
+  z-index: 4;
+  width: 2ch;
+  min-width: 2ch;
+  transform: translateY(-50%);
+  padding: 0 1px;
+  border: none;
+  border-bottom: 1px dashed var(--sketch);
+  outline: none;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--sketch);
+  font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.sketch-note:focus,
+.sketch-note:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+body.mode-draw.shape-text .overlay {
+  cursor: text;
+}
 .mark.sketch-strokes {
   border-radius: 0;
 }

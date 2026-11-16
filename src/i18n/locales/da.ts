@@ -43,6 +43,7 @@ const da: Messages = {
   "shape.pen": "Frihånd",
   "shape.arrow": "Pil",
   "shape.rect": "Rektangel",
+  "shape.text": "Tekst",
   "zoom.in": "Zoom ind",
   "zoom.out": "Zoom ud",
   "zoom.fit": "Tilpas til bredde",

@@ -45,6 +45,7 @@ const fr: Messages = {
   "shape.pen": "Main levée",
   "shape.arrow": "Flèche",
   "shape.rect": "Rectangle",
+  "shape.text": "Texte",
   "zoom.in": "Zoom avant",
   "zoom.out": "Zoom arrière",
   "zoom.fit": "Ajuster à la largeur",

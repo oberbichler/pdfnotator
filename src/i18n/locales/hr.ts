@@ -44,6 +44,7 @@ const hr: Messages = {
   "shape.pen": "Slobodna ruka",
   "shape.arrow": "Strelica",
   "shape.rect": "Pravokutnik",
+  "shape.text": "Tekst",
   "zoom.in": "Povećaj",
   "zoom.out": "Smanji",
   "zoom.fit": "Prilagodi širini",

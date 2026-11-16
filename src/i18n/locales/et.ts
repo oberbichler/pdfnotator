@@ -40,6 +40,7 @@ const et: Messages = {
   "shape.pen": "Vabakäsi",
   "shape.arrow": "Nool",
   "shape.rect": "Ristkülik",
+  "shape.text": "Tekst",
   "zoom.in": "Suurenda",
   "zoom.out": "Vähenda",
   "zoom.fit": "Sobita laiusele",
