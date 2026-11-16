@@ -325,6 +325,7 @@ export function attachSketchTool(pv: PageView): void {
     "pointerdown",
     (e) => {
       if (e.pointerType !== "pen" || e.button !== 0) return;
+      if (state.tool === "select" || state.tool === "area") return; // there the pen selects / marks
       if (e.target instanceof Element && e.target.closest(".sketch-note, .sketch-hint")) return;
       if (!penSeen) {
         penSeen = true;

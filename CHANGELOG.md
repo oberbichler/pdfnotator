@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- Select tool (`V`, arrow icon): mark and copy text without opening the comment box. On a tablet the pen selects
+  text in this mode instead of drawing. The text tool is now called “Comment on text”.
+
 ## [0.6.0] - 2026-11-16
 
 ### Added
