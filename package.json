@@ -24,7 +24,7 @@
     "@tauri-apps/api": "^2.12.4",
     "@tauri-apps/plugin-dialog": "^2.8.4",
     "lucide": "^1.72.0",
-    "pdfjs-dist": "^5.7.284"
+    "pdfjs-dist": "^6.5.438"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.7",
