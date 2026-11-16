@@ -91,6 +91,17 @@ const pl: Messages = {
   "composer.area": "Obszar · s. {page}",
   "composer.sketch": "Szkic · s. {page}",
   "sketch.hint": "Pisz, aby skomentować · ⌘Z cofnij · Esc odrzuć",
+  "tablet.connect": "Połącz tablet",
+  "tablet.connectHint": "Adnotuj rysikiem w przeglądarce tabletu",
+  "tablet.title": "Połącz tablet",
+  "tablet.scan": "Zeskanuj kod aparatem tabletu. Oba urządzenia muszą być w tej samej sieci.",
+  "tablet.note":
+    "Tablet pokazuje otwarte karty: rysuj rysikiem, przewijaj palcem. Zatrzymaj udostępnianie, aby ponownie go odłączyć.",
+  "tablet.stop": "Zatrzymaj udostępnianie",
+  "tablet.done": "Gotowe",
+  "tablet.failed": "Nie udało się połączyć tabletu: {error}",
+  "tablet.stopped": "Udostępnianie tabletowi zatrzymane",
+  "sketch.hintTouch": "Stuknij, aby skomentować",
 
   "comment.deleteText": "Usuń ten tekst.",
   "comment.deleteArea": "Usuń ten obszar.",

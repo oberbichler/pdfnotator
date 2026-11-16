@@ -28,6 +28,7 @@ import { nextCommentId, state, update } from "../store";
 import type { PageView, Viewer } from "../viewer";
 import { textInRect } from "./area-tool";
 import { closeComposer, isComposerOpen, openComposer } from "./composer";
+import { setTool } from "./dock";
 import { h } from "./dom";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -42,6 +43,8 @@ interface Pending {
 let viewer: Viewer;
 let pending: Pending | null = null;
 let current: Shape | null = null;
+/** A pen (Apple Pencil) was used: from then on fingers scroll instead of drawing. */
+let penSeen = false;
 /** Input for a note being typed, with the point it was placed at. */
 let note: { input: HTMLInputElement; at: Point } | null = null;
 
@@ -153,8 +156,15 @@ function sketchOn(pv: PageView): Pending {
   if (pending && (pending.pv !== pv || !pending.layer.isConnected)) clearSketch();
   if (!pending) {
     const layer = sketchSvg([], pageSize(pv), "sketch-layer");
-    const hint = h("div", "sketch-hint", t("sketch.hint"));
+    const hint = h("button", "sketch-hint", t(penSeen ? "sketch.hintTouch" : "sketch.hint"));
+    hint.type = "button";
     hint.hidden = true;
+    // tablets have no keyboard to start typing: tap the hint instead
+    hint.addEventListener("pointerdown", (e) => e.stopPropagation());
+    hint.addEventListener("click", (e) => {
+      e.stopPropagation();
+      commentSketch();
+    });
     pv.overlay.append(layer, hint);
     pending = { pv, shapes: [], layer, hint };
   }
@@ -247,6 +257,15 @@ export function endShape(cancel = false): void {
   else clearSketch();
 }
 
+/** Keep receiving a pointer's events while it leaves the page (best effort). */
+function capture(el: Element, pointerId: number): void {
+  try {
+    el.setPointerCapture(pointerId);
+  } catch {
+    // the pointer is already gone (or synthetic): drawing works without capture
+  }
+}
+
 export function attachSketchTool(pv: PageView): void {
   const overlay = pv.overlay;
   const toPage = (e: PointerEvent): Point => {
@@ -254,20 +273,64 @@ export function attachSketchTool(pv: PageView): void {
     return [clamp((e.clientX - r.left) / r.width, 0, 1), clamp((e.clientY - r.top) / r.height, 0, 1)];
   };
 
+  // Safari scrolls (and selects text) under an Apple Pencil unless its touches are cancelled;
+  // pointer events still arrive. Finger touches keep scrolling and zooming.
+  pv.el.addEventListener(
+    "touchstart",
+    (e) => {
+      if ([...e.touches].some((touch) => (touch as Touch & { touchType?: string }).touchType === "stylus")) {
+        e.preventDefault();
+      }
+    },
+    { passive: false },
+  );
+  // a pen always draws, whatever tool is active
+  pv.el.addEventListener(
+    "pointerdown",
+    (e) => {
+      if (e.pointerType !== "pen" || e.button !== 0) return;
+      if (e.target instanceof Element && e.target.closest(".sketch-note, .sketch-hint")) return;
+      if (!penSeen) {
+        penSeen = true;
+        document.body.classList.add("pen");
+      }
+      if (state.tool !== "draw") setTool("draw");
+      e.preventDefault();
+      e.stopPropagation();
+      if (state.shape === "text") {
+        placeNote(pv, toPage(e));
+        return;
+      }
+      capture(overlay, e.pointerId);
+      beginShape(pv, toPage(e));
+    },
+    { capture: true },
+  );
+
   overlay.addEventListener("pointerdown", (e) => {
     if (state.tool !== "draw" || e.button !== 0) return;
+    if (e.pointerType === "touch" && penSeen) return; // fingers scroll, and a resting palm does nothing
     if (e.target instanceof Element && e.target.closest(".sketch-note")) return; // clicks into the note's input
     e.preventDefault();
     if (state.shape === "text") {
       placeNote(pv, toPage(e));
       return;
     }
-    overlay.setPointerCapture(e.pointerId);
+    capture(overlay, e.pointerId);
     beginShape(pv, toPage(e));
   });
-  overlay.addEventListener("pointermove", (e) => extendCurrent(toPage(e)));
-  overlay.addEventListener("pointerup", () => endShape());
-  overlay.addEventListener("pointercancel", () => endShape(true));
+  overlay.addEventListener("pointermove", (e) => {
+    if (e.pointerType === "touch" && penSeen) return;
+    extendCurrent(toPage(e));
+  });
+  overlay.addEventListener("pointerup", (e) => {
+    if (e.pointerType === "touch" && penSeen) return;
+    endShape();
+  });
+  overlay.addEventListener("pointercancel", (e) => {
+    if (e.pointerType === "touch" && penSeen) return;
+    endShape(true);
+  });
 }
 
 /** Open the composer for the pending sketch. Returns false if there is none. */

@@ -173,7 +173,21 @@
       <button class="menu-item" data-copy="vscode" role="menuitem"><i data-icon="plug"></i><div><b data-i18n="connect.copyVscode"></b><span data-i18n="connect.copyVscodeHint"></span></div></button>
       <button class="menu-item" data-copy="copilotCli" role="menuitem"><i data-icon="terminal"></i><div><b data-i18n="connect.copyCopilotCli"></b><span data-i18n="connect.copyCopilotCliHint"></span></div></button>
       <button class="menu-item" data-copy="claude" role="menuitem"><i data-icon="terminal"></i><div><b data-i18n="connect.copyClaude"></b><span data-i18n="connect.copyClaudeHint"></span></div></button>
+      <button class="menu-item desktop-only" id="btn-tablet" role="menuitem"><i data-icon="tablet"></i><div><b data-i18n="tablet.connect"></b><span data-i18n="tablet.connectHint"></span></div></button>
     </div>
+
+    <!-- dialog: pair a tablet (see ui/tablet.ts) -->
+    <dialog id="tablet-dialog" aria-labelledby="tablet-title">
+      <h2 id="tablet-title" data-i18n="tablet.title"></h2>
+      <p class="muted" data-i18n="tablet.scan"></p>
+      <div id="tablet-qr"></div>
+      <code id="tablet-url"></code>
+      <p class="muted small" data-i18n="tablet.note"></p>
+      <div class="dialog-actions">
+        <button id="tablet-stop" class="btn" data-i18n="tablet.stop"></button>
+        <button id="tablet-close" class="btn primary" data-i18n="tablet.done"></button>
+      </div>
+    </dialog>
 
     <!-- floating: language -->
     <div id="language-menu" class="floating menu hidden" role="menu"></div>

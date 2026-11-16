@@ -85,3 +85,44 @@ pub fn app_info() -> AppInfo {
         demo: std::env::var("PDFNOTATOR_DEMO").ok().filter(|v| !v.is_empty()),
     }
 }
+
+/// Start serving the UI to tablets on the local network; returns the pairing URL and QR code.
+#[tauri::command]
+pub async fn remote_start(
+    app: tauri::AppHandle,
+    session: SessionState<'_>,
+    remote: State<'_, Arc<crate::remote::Remote>>,
+) -> Result<crate::remote::RemoteInfo, String> {
+    remote
+        .start(Arc::clone(&session), remote_assets(app), remote_port())
+        .await
+}
+
+/// The bundled UI, served to tablets.
+pub fn remote_assets(app: tauri::AppHandle) -> crate::remote::Assets {
+    Arc::new(move |path: &str| {
+        app.asset_resolver()
+            .get(path.to_owned())
+            .map(|a| (a.bytes, a.mime_type))
+    })
+}
+
+/// `PDFNOTATOR_REMOTE_PORT` or the default.
+pub fn remote_port() -> u16 {
+    std::env::var("PDFNOTATOR_REMOTE_PORT")
+        .ok()
+        .and_then(|p| p.parse().ok())
+        .unwrap_or(crate::remote::DEFAULT_PORT)
+}
+
+/// Stop serving tablets (their pairing becomes invalid).
+#[tauri::command]
+pub fn remote_stop(remote: State<'_, Arc<crate::remote::Remote>>) {
+    remote.stop();
+}
+
+/// Pairing info of the running remote server, if any.
+#[tauri::command]
+pub fn remote_info(remote: State<'_, Arc<crate::remote::Remote>>) -> Option<crate::remote::RemoteInfo> {
+    remote.info()
+}

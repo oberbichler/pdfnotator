@@ -91,6 +91,17 @@ const sk: Messages = {
   "composer.area": "Oblasť · s. {page}",
   "composer.sketch": "Náčrt · s. {page}",
   "sketch.hint": "Píšte pre komentár · ⌘Z späť · Esc zahodiť",
+  "tablet.connect": "Pripojiť tablet",
+  "tablet.connectHint": "Anotujte perom v prehliadači tabletu",
+  "tablet.title": "Pripojiť tablet",
+  "tablet.scan": "Naskenujte kód fotoaparátom tabletu. Obe zariadenia musia byť v rovnakej sieti.",
+  "tablet.note":
+    "Tablet zobrazuje otvorené karty: kreslite perom, posúvajte prstom. Ukončením zdieľania ho opäť odpojíte.",
+  "tablet.stop": "Ukončiť zdieľanie",
+  "tablet.done": "Hotovo",
+  "tablet.failed": "Tablet sa nepodarilo pripojiť: {error}",
+  "tablet.stopped": "Zdieľanie s tabletom ukončené",
+  "sketch.hintTouch": "Ťuknutím pridáte komentár",
 
   "comment.deleteText": "Vymaž tento text.",
   "comment.deleteArea": "Vymaž túto oblasť.",

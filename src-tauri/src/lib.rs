@@ -9,6 +9,7 @@
 //! - [`http`]: loopback HTTP server (MCP endpoint + REST API)
 //! - [`bridge`]: `--mcp` stdio transport that launches the viewer on demand
 //! - [`commands`]: Tauri commands for the UI
+//! - [`remote`]: optional LAN server that shows the UI on a tablet (pen annotation)
 
 #![doc(html_no_source)]
 
@@ -20,6 +21,7 @@ mod feedback;
 mod http;
 mod mcp;
 mod paths;
+mod remote;
 mod session;
 mod typst;
 
@@ -41,7 +43,9 @@ USAGE:
 
 ENVIRONMENT:
     PDFNOTATOR_PORT        HTTP port (default 4747)
-    PDFNOTATOR_TYPST       path of the typst binary";
+    PDFNOTATOR_TYPST       path of the typst binary
+    PDFNOTATOR_REMOTE      1 = share with tablets on start (prints the pairing URL)
+    PDFNOTATOR_REMOTE_PORT port for tablets (default 4748)";
 
 /// Parsed command line.
 #[derive(Debug, PartialEq, Eq)]
@@ -100,9 +104,11 @@ fn run_viewer(port: u16, file: Option<String>) {
 
     let session = Session::new(port);
     let exit_session = session.clone();
+    let remote = Arc::new(remote::Remote::default());
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(session.clone())
+        .manage(remote.clone())
         .invoke_handler(tauri::generate_handler![
             commands::open_document,
             commands::close_document,
@@ -111,6 +117,9 @@ fn run_viewer(port: u16, file: Option<String>) {
             commands::submit_feedback,
             commands::set_view,
             commands::app_info,
+            commands::remote_start,
+            commands::remote_stop,
+            commands::remote_info,
         ])
         .setup(move |app| {
             session.set_sink(Arc::new(app.handle().clone()));
@@ -119,6 +128,17 @@ fn run_viewer(port: u16, file: Option<String>) {
                 Err(e) => session.set_server_error(format!("port {port} unavailable: {e}")),
             }
             exit_on_signal(app.handle().clone(), session.clone());
+            // PDFNOTATOR_REMOTE=1: share with tablets right away and print the pairing URL
+            if std::env::var("PDFNOTATOR_REMOTE").is_ok_and(|v| v == "1") {
+                let (handle, session, remote) = (app.handle().clone(), session.clone(), remote.clone());
+                tauri::async_runtime::spawn(async move {
+                    let assets = commands::remote_assets(handle);
+                    match remote.start(session, assets, commands::remote_port()).await {
+                        Ok(info) => eprintln!("pdfnotator: tablet URL {}", info.url),
+                        Err(e) => eprintln!("pdfnotator: tablet sharing failed: {e}"),
+                    }
+                });
+            }
             if let Some(file) = file {
                 let session = session.clone();
                 std::thread::spawn(move || {

@@ -86,6 +86,11 @@ impl Session {
         self.emitter.set(sink);
     }
 
+    /// Every UI event from now on (for remote viewers).
+    pub fn subscribe(&self) -> tokio::sync::broadcast::Receiver<(String, serde_json::Value)> {
+        self.emitter.subscribe()
+    }
+
     pub fn emit_status(&self) {
         self.emitter.emit(
             name::STATUS,

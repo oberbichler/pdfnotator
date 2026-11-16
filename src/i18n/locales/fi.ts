@@ -81,6 +81,17 @@ const fi: Messages = {
   "composer.area": "Alue · s. {page}",
   "composer.sketch": "Luonnos · s. {page}",
   "sketch.hint": "Kirjoita kommentoidaksesi · ⌘Z kumoa · Esc hylkää",
+  "tablet.connect": "Yhdistä tabletti",
+  "tablet.connectHint": "Merkitse kynällä tabletin selaimessa",
+  "tablet.title": "Yhdistä tabletti",
+  "tablet.scan": "Skannaa koodi tabletin kameralla. Molempien laitteiden on oltava samassa verkossa.",
+  "tablet.note":
+    "Tabletti näyttää avoimet välilehdet: piirrä kynällä, vieritä sormella. Lopeta jakaminen sulkeaksesi sen jälleen pois.",
+  "tablet.stop": "Lopeta jakaminen",
+  "tablet.done": "Valmis",
+  "tablet.failed": "Tablettia ei voitu yhdistää: {error}",
+  "tablet.stopped": "Jakaminen tabletille lopetettu",
+  "sketch.hintTouch": "Napauta kommentoidaksesi",
 
   "comment.deleteText": "Poista tämä teksti.",
   "comment.deleteArea": "Poista tämä alue.",

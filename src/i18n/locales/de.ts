@@ -81,6 +81,17 @@ const de: Messages = {
   "composer.area": "Bereich · S. {page}",
   "composer.sketch": "Skizze · S. {page}",
   "sketch.hint": "Tippen zum Kommentieren · ⌘Z rückgängig · Esc verwerfen",
+  "tablet.connect": "Tablet verbinden",
+  "tablet.connectHint": "Mit dem Stift im Browser des Tablets annotieren",
+  "tablet.title": "Tablet verbinden",
+  "tablet.scan": "Scanne den Code mit der Kamera des Tablets. Beide Geräte müssen im selben Netzwerk sein.",
+  "tablet.note":
+    "Das Tablet zeigt die offenen Tabs: mit dem Stift zeichnen, mit dem Finger scrollen. „Freigabe beenden“ sperrt es wieder aus.",
+  "tablet.stop": "Freigabe beenden",
+  "tablet.done": "Fertig",
+  "tablet.failed": "Tablet konnte nicht verbunden werden: {error}",
+  "tablet.stopped": "Tablet-Freigabe beendet",
+  "sketch.hintTouch": "Tippen zum Kommentieren",
 
   "comment.deleteText": "Diesen Text löschen.",
   "comment.deleteArea": "Diesen Bereich löschen.",

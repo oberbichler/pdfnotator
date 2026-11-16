@@ -49,6 +49,9 @@
 Select text and start typing — the comment box opens right away (`⇥` switches to **Replace** or **Delete**).
 Press `R` and drag → screenshot comment.
 Press `D` and draw on the page (`⇥`: freehand, arrow, rectangle, text note), then just start typing → sketch comment.
+
+Annotate with a pen on an iPad or other tablet: agent menu → **Connect tablet**, scan the QR code. The tablet's
+browser shows the open tabs; the pen draws, fingers scroll. Both devices must be on the same network.
 The agent picks your comments up, edits the `.typ`, and the PDF updates by itself — you never press reload.
 Several agents can work on several documents at once — each gets its own tab.
 

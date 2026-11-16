@@ -84,6 +84,17 @@ const da: Messages = {
   "composer.area": "Område · s. {page}",
   "composer.sketch": "Skitse · s. {page}",
   "sketch.hint": "Skriv for at kommentere · ⌘Z fortryd · Esc kassér",
+  "tablet.connect": "Forbind tablet",
+  "tablet.connectHint": "Annotér med en pen i tablettens browser",
+  "tablet.title": "Forbind en tablet",
+  "tablet.scan": "Scan koden med tablettens kamera. Begge enheder skal være på samme netværk.",
+  "tablet.note":
+    "Tabletten viser de åbne faner: tegn med pennen, rul med en finger. Stop deling for at lukke den ude igen.",
+  "tablet.stop": "Stop deling",
+  "tablet.done": "Færdig",
+  "tablet.failed": "Kunne ikke forbinde tabletten: {error}",
+  "tablet.stopped": "Deling med tablet stoppet",
+  "sketch.hintTouch": "Tryk for at kommentere",
 
   "comment.deleteText": "Slet denne tekst.",
   "comment.deleteArea": "Slet dette område.",

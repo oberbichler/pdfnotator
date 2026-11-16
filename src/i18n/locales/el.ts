@@ -81,6 +81,18 @@ const el: Messages = {
   "composer.area": "Περιοχή · σ. {page}",
   "composer.sketch": "Σκίτσο · σ. {page}",
   "sketch.hint": "Πληκτρολογήστε για σχόλιο · ⌘Z αναίρεση · Esc απόρριψη",
+  "tablet.connect": "Σύνδεση tablet",
+  "tablet.connectHint": "Σχολιασμός με γραφίδα στο πρόγραμμα περιήγησης του tablet",
+  "tablet.title": "Σύνδεση tablet",
+  "tablet.scan":
+    "Σαρώστε τον κωδικό με την κάμερα του tablet. Και οι δύο συσκευές πρέπει να είναι στο ίδιο δίκτυο.",
+  "tablet.note":
+    "Το tablet δείχνει τις ανοιχτές καρτέλες: σχεδιάστε με τη γραφίδα, κάντε κύλιση με το δάχτυλο. Διακόψτε την κοινή χρήση για να το αποκλείσετε ξανά.",
+  "tablet.stop": "Διακοπή κοινής χρήσης",
+  "tablet.done": "Τέλος",
+  "tablet.failed": "Δεν ήταν δυνατή η σύνδεση του tablet: {error}",
+  "tablet.stopped": "Η κοινή χρήση με το tablet διακόπηκε",
+  "sketch.hintTouch": "Πατήστε για σχόλιο",
 
   "comment.deleteText": "Διάγραψε αυτό το κείμενο.",
   "comment.deleteArea": "Διάγραψε αυτή την περιοχή.",

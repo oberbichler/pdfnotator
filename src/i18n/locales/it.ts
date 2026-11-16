@@ -85,6 +85,18 @@ const it: Messages = {
   "composer.area": "Area · p. {page}",
   "composer.sketch": "Schizzo · p. {page}",
   "sketch.hint": "Scrivi per commentare · ⌘Z annulla · Esc scarta",
+  "tablet.connect": "Collega tablet",
+  "tablet.connectHint": "Annota con la penna nel browser del tablet",
+  "tablet.title": "Collega un tablet",
+  "tablet.scan":
+    "Scansiona il codice con la fotocamera del tablet. Entrambi i dispositivi devono essere sulla stessa rete.",
+  "tablet.note":
+    "Il tablet mostra le schede aperte: disegna con la penna, scorri con il dito. Interrompi la condivisione per escluderlo di nuovo.",
+  "tablet.stop": "Interrompi condivisione",
+  "tablet.done": "Fatto",
+  "tablet.failed": "Impossibile collegare il tablet: {error}",
+  "tablet.stopped": "Condivisione con il tablet interrotta",
+  "sketch.hintTouch": "Tocca per commentare",
 
   "comment.deleteText": "Elimina questo testo.",
   "comment.deleteArea": "Elimina quest’area.",

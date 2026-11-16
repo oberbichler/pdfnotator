@@ -82,6 +82,18 @@ const hu: Messages = {
   "composer.area": "Terület · {page}. o.",
   "composer.sketch": "Vázlat · {page}. o.",
   "sketch.hint": "Gépeljen a megjegyzéshez · ⌘Z visszavonás · Esc elvetés",
+  "tablet.connect": "Táblagép csatlakoztatása",
+  "tablet.connectHint": "Jegyzetelés tollal a táblagép böngészőjében",
+  "tablet.title": "Táblagép csatlakoztatása",
+  "tablet.scan":
+    "Olvasd be a kódot a táblagép kamerájával. Mindkét eszköznek ugyanazon a hálózaton kell lennie.",
+  "tablet.note":
+    "A táblagép a megnyitott lapokat mutatja: rajzolj a tollal, görgess az ujjaddal. A megosztás leállításával újra kizárod.",
+  "tablet.stop": "Megosztás leállítása",
+  "tablet.done": "Kész",
+  "tablet.failed": "A táblagép nem csatlakoztatható: {error}",
+  "tablet.stopped": "A táblagép-megosztás leállt",
+  "sketch.hintTouch": "Koppints a megjegyzéshez",
 
   "comment.deleteText": "Töröld ezt a szöveget.",
   "comment.deleteArea": "Töröld ezt a területet.",

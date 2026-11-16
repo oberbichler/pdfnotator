@@ -85,6 +85,17 @@ const pt: Messages = {
   "composer.area": "Área · p. {page}",
   "composer.sketch": "Esboço · p. {page}",
   "sketch.hint": "Escreva para comentar · ⌘Z desfazer · Esc descartar",
+  "tablet.connect": "Ligar tablet",
+  "tablet.connectHint": "Anote com uma caneta no navegador do tablet",
+  "tablet.title": "Ligar um tablet",
+  "tablet.scan": "Leia o código com a câmara do tablet. Ambos os dispositivos têm de estar na mesma rede.",
+  "tablet.note":
+    "O tablet mostra os separadores abertos: desenhe com a caneta, deslize com o dedo. Pare a partilha para o bloquear novamente.",
+  "tablet.stop": "Parar partilha",
+  "tablet.done": "Concluído",
+  "tablet.failed": "Não foi possível ligar o tablet: {error}",
+  "tablet.stopped": "Partilha com o tablet parada",
+  "sketch.hintTouch": "Toque para comentar",
 
   "comment.deleteText": "Elimina este texto.",
   "comment.deleteArea": "Elimina esta área.",

@@ -85,6 +85,17 @@ const lv: Messages = {
   "composer.area": "Apgabals · {page}. lpp.",
   "composer.sketch": "Skice · {page}. lpp.",
   "sketch.hint": "Rakstiet, lai komentētu · ⌘Z atsaukt · Esc atmest",
+  "tablet.connect": "Pievienot planšetdatoru",
+  "tablet.connectHint": "Anotējiet ar pildspalvu planšetdatora pārlūkā",
+  "tablet.title": "Pievienot planšetdatoru",
+  "tablet.scan": "Noskenējiet kodu ar planšetdatora kameru. Abām ierīcēm jābūt vienā tīklā.",
+  "tablet.note":
+    "Planšetdators rāda atvērtās cilnes: zīmējiet ar pildspalvu, ritiniet ar pirkstu. Pārtrauciet kopīgošanu, lai to atkal atslēgtu.",
+  "tablet.stop": "Pārtraukt kopīgošanu",
+  "tablet.done": "Gatavs",
+  "tablet.failed": "Neizdevās pievienot planšetdatoru: {error}",
+  "tablet.stopped": "Kopīgošana ar planšetdatoru pārtraukta",
+  "sketch.hintTouch": "Pieskarieties, lai komentētu",
 
   "comment.deleteText": "Izdzēs šo tekstu.",
   "comment.deleteArea": "Izdzēs šo apgabalu.",

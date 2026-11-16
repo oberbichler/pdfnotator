@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- Tablets: annotate with a pen (Apple Pencil) in a tablet's browser. Agent menu → **Connect tablet** shows a QR
+  code; the tablet then sees the open tabs and sends comments and sketches to the same agents. The pen always
+  draws, fingers scroll and zoom, tapping the sketch pill opens the comment box. Off by default; access needs the
+  pairing token from the QR code (stored as a cookie), and **Stop sharing** locks the tablet out again.
+  `PDFNOTATOR_REMOTE=1` starts sharing on launch and prints the URL, `PDFNOTATOR_REMOTE_PORT` sets the port
+  (default 4748).
+
 ## [0.5.0] - 2026-11-16
 
 ### Changed
