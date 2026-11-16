@@ -11,7 +11,7 @@ import "./styles.css";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { openDocument } from "./actions";
-import { backend, on } from "./backend";
+import { backend, isDesktop, on } from "./backend";
 import { t } from "./i18n";
 import {
   activate,
@@ -40,6 +40,7 @@ import { initSelection, isSelecting } from "./ui/selection";
 import { initSidebar } from "./ui/sidebar";
 import { attachSketchTool, initSketchTool } from "./ui/sketch-tool";
 import { initStatus, setExecutable } from "./ui/status";
+import { initTablet } from "./ui/tablet";
 import { initTabs, pulseActiveTab } from "./ui/tabs";
 import { initThread } from "./ui/thread";
 import { toast } from "./ui/toast";
@@ -48,6 +49,7 @@ import { selectionTouches, Viewer } from "./viewer";
 // ---------- static markup ----------
 
 document.body.classList.toggle("macos", isMac);
+document.body.classList.toggle("remote", !isDesktop);
 for (const el of document.querySelectorAll<HTMLElement>("[data-shortcut]")) {
   el.dataset.shortcut = shortcut(el.dataset.shortcut ?? "");
 }
@@ -97,6 +99,7 @@ initThread(viewer);
 initSidebar();
 initResize();
 initStatus();
+initTablet();
 initTabs(() => void pickFile());
 initLanguagePicker();
 initKeyboard(viewer, () => void pickFile());
@@ -149,6 +152,7 @@ function showActive(): void {
 subscribe(showActive);
 
 async function pickFile(): Promise<void> {
+  if (!isDesktop) return; // a tablet shows the computer's tabs; files are opened there
   const path = await openDialog({
     multiple: false,
     filters: [{ name: t("dialog.filter"), extensions: ["typ", "pdf"] }],
@@ -187,13 +191,15 @@ void on("agent-message", ({ doc, message, resolved }) => {
   }
 });
 
-void getCurrentWebview().onDragDropEvent(({ payload }) => {
-  document.body.classList.toggle("drag-over", payload.type === "enter" || payload.type === "over");
-  if (payload.type !== "drop") return;
-  const files = payload.paths.filter((p) => /\.(pdf|typ)$/i.test(p));
-  if (!files.length) toast(t("error.unsupportedDrop"), "error");
-  for (const file of files) void openDocument(file);
-});
+if (isDesktop) {
+  void getCurrentWebview().onDragDropEvent(({ payload }) => {
+    document.body.classList.toggle("drag-over", payload.type === "enter" || payload.type === "over");
+    if (payload.type !== "drop") return;
+    const files = payload.paths.filter((p) => /\.(pdf|typ)$/i.test(p));
+    if (!files.length) toast(t("error.unsupportedDrop"), "error");
+    for (const file of files) void openDocument(file);
+  });
+}
 
 // ---------- startup ----------
 

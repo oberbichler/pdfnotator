@@ -84,6 +84,20 @@ const nl: Messages = {
   "composer.area": "Gebied · p. {page}",
   "composer.sketch": "Schets · p. {page}",
   "sketch.hint": "Typ om te reageren · ⌘Z ongedaan maken · Esc weggooien",
+  "tablet.connect": "Tablet koppelen",
+  "tablet.connectHint": "Annoteer met een pen in de browser van de tablet",
+  "tablet.title": "Een tablet koppelen",
+  "tablet.scan":
+    "Scan de code met de camera van de tablet. Beide apparaten moeten op hetzelfde netwerk zitten.",
+  "tablet.note":
+    "De tablet toont de open tabbladen: teken met de pen, scroll met een vinger. Stop met delen om hem weer buiten te sluiten.",
+  "tablet.stop": "Stoppen met delen",
+  "tablet.done": "Klaar",
+  "tablet.failed": "Tablet kon niet worden gekoppeld: {error}",
+  "tablet.stopped": "Delen met tablet gestopt",
+  "sketch.hintTouch": "Tik om te reageren",
+  "sketch.undo": "Ongedaan maken",
+  "sketch.redo": "Opnieuw",
 
   "comment.deleteText": "Verwijder deze tekst.",
   "comment.deleteArea": "Verwijder dit gebied.",

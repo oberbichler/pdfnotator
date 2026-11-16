@@ -85,6 +85,20 @@ const es: Messages = {
   "composer.area": "Área · pág. {page}",
   "composer.sketch": "Boceto · pág. {page}",
   "sketch.hint": "Escribe para comentar · ⌘Z deshacer · Esc descartar",
+  "tablet.connect": "Conectar tableta",
+  "tablet.connectHint": "Anota con un lápiz en el navegador de la tableta",
+  "tablet.title": "Conectar una tableta",
+  "tablet.scan":
+    "Escanea el código con la cámara de la tableta. Ambos dispositivos deben estar en la misma red.",
+  "tablet.note":
+    "La tableta muestra las pestañas abiertas: dibuja con el lápiz y desplázate con el dedo. Deja de compartir para bloquearla de nuevo.",
+  "tablet.stop": "Dejar de compartir",
+  "tablet.done": "Listo",
+  "tablet.failed": "No se pudo conectar la tableta: {error}",
+  "tablet.stopped": "Se dejó de compartir con la tableta",
+  "sketch.hintTouch": "Toca para comentar",
+  "sketch.undo": "Deshacer",
+  "sketch.redo": "Rehacer",
 
   "comment.deleteText": "Elimina este texto.",
   "comment.deleteArea": "Elimina esta área.",

@@ -53,12 +53,22 @@ impl EventSink for tauri::AppHandle {
 }
 
 /// Shared, replaceable sink: documents keep a handle while the app connects
-/// the real UI sink once it is ready.
-pub struct Emitter(std::sync::RwLock<std::sync::Arc<dyn EventSink>>);
+/// the real UI sink once it is ready. Every event is also broadcast to remote
+/// viewers (tablets, see [`crate::remote`]).
+pub struct Emitter {
+    sink: std::sync::RwLock<std::sync::Arc<dyn EventSink>>,
+    remote: tokio::sync::broadcast::Sender<(String, Value)>,
+}
+
+/// Events buffered per remote viewer before a slow one starts missing some.
+const REMOTE_BACKLOG: usize = 256;
 
 impl Default for Emitter {
     fn default() -> Self {
-        Self(std::sync::RwLock::new(std::sync::Arc::new(NoopSink)))
+        Self {
+            sink: std::sync::RwLock::new(std::sync::Arc::new(NoopSink)),
+            remote: tokio::sync::broadcast::channel(REMOTE_BACKLOG).0,
+        }
     }
 }
 
@@ -70,15 +80,23 @@ impl std::fmt::Debug for Emitter {
 
 impl Emitter {
     pub fn set(&self, sink: std::sync::Arc<dyn EventSink>) {
-        *self.0.write().unwrap() = sink;
+        *self.sink.write().unwrap() = sink;
     }
 
     fn sink(&self) -> std::sync::Arc<dyn EventSink> {
-        self.0.read().unwrap().clone()
+        self.sink.read().unwrap().clone()
     }
 
     pub fn emit(&self, event: &str, payload: Value) {
+        if self.remote.receiver_count() > 0 {
+            let _ = self.remote.send((event.to_owned(), payload.clone()));
+        }
         self.sink().emit(event, payload);
+    }
+
+    /// Receive every event from now on (for a remote viewer).
+    pub fn subscribe(&self) -> tokio::sync::broadcast::Receiver<(String, Value)> {
+        self.remote.subscribe()
     }
 
     pub fn reveal(&self, title: &str) {

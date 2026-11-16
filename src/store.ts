@@ -108,7 +108,16 @@ export function applyServerStatus(status: ServerStatus): void {
 // ---------- actions ----------
 
 let nextSeq = 1;
-export const nextCommentId = (): string => `c${nextSeq++}`;
+/**
+ * Comment ids are unique per viewer: the desktop app uses `c1`, `c2`, …; a
+ * tablet's browser adds a random tag per page load (`t4kq-1`), so comments
+ * from several viewers never share an id towards the agent.
+ */
+const ID_PREFIX =
+  typeof window !== "undefined" && !("__TAURI_INTERNALS__" in window)
+    ? `t${Math.random().toString(36).slice(2, 6)}-`
+    : "c";
+export const nextCommentId = (): string => `${ID_PREFIX}${nextSeq++}`;
 
 export function activate(id: number | null): void {
   update((s) => {

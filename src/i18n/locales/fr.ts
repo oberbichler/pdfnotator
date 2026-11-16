@@ -86,6 +86,20 @@ const fr: Messages = {
   "composer.area": "Zone · p. {page}",
   "composer.sketch": "Croquis · p. {page}",
   "sketch.hint": "Tapez pour commenter · ⌘Z annuler · Esc effacer",
+  "tablet.connect": "Connecter une tablette",
+  "tablet.connectHint": "Annoter au stylet dans le navigateur de la tablette",
+  "tablet.title": "Connecter une tablette",
+  "tablet.scan":
+    "Scannez le code avec l’appareil photo de la tablette. Les deux appareils doivent être sur le même réseau.",
+  "tablet.note":
+    "La tablette affiche les onglets ouverts : dessinez au stylet, faites défiler au doigt. Arrêtez le partage pour la déconnecter.",
+  "tablet.stop": "Arrêter le partage",
+  "tablet.done": "Terminé",
+  "tablet.failed": "Impossible de connecter la tablette : {error}",
+  "tablet.stopped": "Partage avec la tablette arrêté",
+  "sketch.hintTouch": "Touchez pour commenter",
+  "sketch.undo": "Annuler",
+  "sketch.redo": "Rétablir",
 
   "comment.deleteText": "Supprime ce texte.",
   "comment.deleteArea": "Supprime cette zone.",

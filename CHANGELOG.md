@@ -6,6 +6,19 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-16
+
+### Added
+
+- Tablets: annotate with a pen (Apple Pencil) in a tablet's browser. Agent menu → **Connect tablet** shows a QR
+  code; the tablet then sees the open tabs and sends comments and sketches to the same agents. The pen always
+  draws, fingers scroll and zoom, tapping the sketch pill opens the comment box. Off by default; access needs the
+  pairing token from the QR code (stored as a cookie), and **Stop sharing** locks the tablet out again.
+  `PDFNOTATOR_REMOTE=1` starts sharing on launch and prints the URL, `PDFNOTATOR_REMOTE_PORT` sets the port
+  (default 4748).
+- Draw tool: undo and redo buttons next to the shapes (`⌘Z` / `⇧⌘Z`); redo also brings back shapes after the last
+  one was undone.
+
 ## [0.5.0] - 2026-11-16
 
 ### Changed
@@ -88,7 +101,8 @@ All notable changes to this project are documented here. The format is based on
 - User interface in all 24 official EU languages.
 - File associations for `.typ` and `.pdf`, single-instance hand-over from the command line.
 
-[Unreleased]: ../../compare/v0.5.0...HEAD
+[Unreleased]: ../../compare/v0.6.0...HEAD
+[0.6.0]: ../../compare/v0.5.0...v0.6.0
 [0.5.0]: ../../compare/v0.4.0...v0.5.0
 [0.4.0]: ../../compare/v0.3.0...v0.4.0
 [0.3.0]: ../../compare/v0.2.0...v0.3.0

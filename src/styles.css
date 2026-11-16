@@ -461,8 +461,13 @@ body.mode-area .textLayer,
 body.mode-draw .textLayer {
   pointer-events: none;
 }
-body:not(.mode-draw) #shapes {
+body:not(.mode-draw) #shapes,
+body:not(.mode-draw) #sketch-history {
   display: none;
+}
+#sketch-history button:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 /* sketches */
@@ -523,6 +528,8 @@ body.mode-draw.shape-text .overlay {
 }
 .sketch-hint {
   position: absolute;
+  border: none;
+  cursor: pointer;
   margin-top: 4px;
   padding: 3px 8px;
   border-radius: 6px;
@@ -532,7 +539,7 @@ body.mode-draw.shape-text .overlay {
     600 11px / 16px -apple-system,
     sans-serif;
   white-space: nowrap;
-  pointer-events: none;
+  pointer-events: auto;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 .sketch-hint[hidden] {
@@ -711,6 +718,9 @@ body:not(.has-doc) #dock {
   color: var(--muted);
   font-size: 12px;
   font-variant-numeric: tabular-nums;
+}
+#page-nav {
+  white-space: nowrap;
 }
 #page-input {
   width: 30px;
@@ -1730,4 +1740,80 @@ body.macos #titlebar {
 }
 .demo-pointer.down svg {
   transform: scale(0.85);
+}
+
+/* ---------- tablet pairing (ui/tablet.ts) ---------- */
+#tablet-dialog {
+  width: min(380px, calc(100vw - 32px));
+  padding: 22px 24px 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  text-align: center;
+}
+#tablet-dialog::backdrop {
+  background: rgba(10, 10, 20, 0.35);
+}
+#tablet-dialog h2 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+#tablet-dialog p {
+  margin: 0 0 12px;
+  line-height: 1.45;
+}
+#tablet-dialog .small {
+  font-size: 12px;
+  margin-top: 10px;
+}
+#tablet-qr {
+  display: inline-block;
+  padding: 8px;
+  border-radius: 10px;
+  background: #fff; /* QR codes need a light background, also in dark mode */
+}
+#tablet-qr svg {
+  display: block;
+  width: 220px;
+  height: 220px;
+}
+#tablet-url {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--muted);
+  word-break: break-all;
+  user-select: all;
+}
+#tablet-dialog .dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* ---------- tablet (UI in a browser, see remote.rs) ---------- */
+body.remote .desktop-only {
+  display: none;
+}
+/* a pen draws; fingers keep scrolling and zooming the document */
+body.pen.mode-draw .overlay {
+  touch-action: pan-x pan-y pinch-zoom;
+}
+@media (pointer: coarse) {
+  .seg button,
+  .icon-btn {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  .sketch-hint {
+    padding: 8px 14px;
+    font-size: 14px;
+    line-height: 18px;
+  }
+  .tab {
+    min-height: 36px;
+  }
 }
