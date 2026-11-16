@@ -435,7 +435,7 @@ mod tests {
         assert_eq!(doc.status().agents, vec!["GitHub Copilot CLI".to_owned()]);
         doc.submit(vec![item("c1")]);
         assert!(result_text(&second.await.unwrap()).contains("[c1]"));
-        assert!(doc.status().agents.is_empty());
+        assert_eq!(doc.status().agents, Vec::<String>::new());
     }
 
     #[tokio::test]
