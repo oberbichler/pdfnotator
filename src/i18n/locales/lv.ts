@@ -44,6 +44,7 @@ const lv: Messages = {
   "shape.pen": "Brīvroka",
   "shape.arrow": "Bulta",
   "shape.rect": "Taisnstūris",
+  "shape.text": "Teksts",
   "zoom.in": "Tuvināt",
   "zoom.out": "Tālināt",
   "zoom.fit": "Ietilpināt platumā",

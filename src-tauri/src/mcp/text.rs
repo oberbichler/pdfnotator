@@ -181,7 +181,7 @@ fn render_item(item: &FeedbackItem, detail: Detail, image_dir: &Path) -> (Vec<Va
     if !item.shapes.is_empty() {
         let _ = writeln!(
             s,
-            "Sketch (drawn in red on the screenshot; mm from the page's top-left corner):"
+            "Sketch (drawn in red on the screenshot; notes are typed by the user; mm from the page's top-left corner):"
         );
         for shape in &item.shapes {
             let (line, c) = describe_shape(shape, full);
@@ -269,6 +269,15 @@ fn describe_shape(shape: &FeedbackShape, full: bool) -> (String, bool) {
                 format!(" containing{inside}")
             };
             format!("rectangle {w:.0} × {h:.0} mm at {}{inside}", at([x, y]))
+        }
+        ShapeKind::Text => {
+            let label = quoted(shape.label.as_deref());
+            let label = if label.is_empty() {
+                " \"\"".to_owned()
+            } else {
+                label
+            };
+            format!("note{label} at {}", at([x, y]))
         }
         ShapeKind::Pen => {
             let what = if shape.closed {
@@ -421,6 +430,7 @@ mod tests {
             text: None,
             from_text: None,
             to_text: None,
+            label: None,
         }
     }
 
@@ -440,7 +450,9 @@ mod tests {
         let mut loop_ = shape(ShapeKind::Pen);
         loop_.closed = true;
         loop_.text = Some("Q3 revenue ".repeat(20));
-        it.shapes = vec![arrow, shape(ShapeKind::Rect), loop_];
+        let mut note = shape(ShapeKind::Text);
+        note.label = Some("bigger".into());
+        it.shapes = vec![arrow, shape(ShapeKind::Rect), loop_, note];
 
         let out = feedback_content(&[it.clone()], &status(), dir.path());
         let t = joined(&out);
@@ -451,6 +463,7 @@ mod tests {
         );
         assert!(t.contains("- rectangle 60 × 40 mm at (20, 30) (empty)"), "{t}");
         assert!(t.contains("- loop around \"Q3 revenue"), "{t}");
+        assert!(t.contains("- note \"bigger\" at (20, 30)"), "{t}");
         assert!(t.contains("[+"), "long shape text is shortened: {t}");
         assert_eq!(out.iter().filter(|b| b["type"] == "image").count(), 1);
         assert!(dir.path().join("c7-clean.png").exists());
@@ -465,9 +478,12 @@ mod tests {
     fn sketch_shapes_deserialize_from_the_viewer() {
         let json = r#"{"id":"c1","kind":"area","page":1,"comment":"x","shapes":[
             {"type":"arrow","boxMm":[1,2,3,4],"fromMm":[1,2],"toMm":[4,6],"toText":"Hi"},
-            {"type":"pen","boxMm":[0,0,9,9],"closed":true}]}"#;
+            {"type":"pen","boxMm":[0,0,9,9],"closed":true},
+            {"type":"text","boxMm":[5,5,20,4],"label":"bigger"}]}"#;
         let it: FeedbackItem = serde_json::from_str(json).unwrap();
-        assert_eq!(it.shapes.len(), 2);
+        assert_eq!(it.shapes.len(), 3);
+        assert_eq!(it.shapes[2].kind, ShapeKind::Text);
+        assert_eq!(it.shapes[2].label.as_deref(), Some("bigger"));
         assert_eq!(it.shapes[0].kind, ShapeKind::Arrow);
         assert_eq!(it.shapes[0].to_text.as_deref(), Some("Hi"));
         assert!(it.shapes[1].closed);

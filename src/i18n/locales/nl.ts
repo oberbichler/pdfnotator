@@ -43,6 +43,7 @@ const nl: Messages = {
   "shape.pen": "Uit de vrije hand",
   "shape.arrow": "Pijl",
   "shape.rect": "Rechthoek",
+  "shape.text": "Tekst",
   "zoom.in": "Inzoomen",
   "zoom.out": "Uitzoomen",
   "zoom.fit": "Passend in breedte",

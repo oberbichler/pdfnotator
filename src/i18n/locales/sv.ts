@@ -43,6 +43,7 @@ const sv: Messages = {
   "shape.pen": "Frihand",
   "shape.arrow": "Pil",
   "shape.rect": "Rektangel",
+  "shape.text": "Text",
   "zoom.in": "Zooma in",
   "zoom.out": "Zooma ut",
   "zoom.fit": "Anpassa till bredd",

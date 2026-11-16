@@ -45,6 +45,7 @@ const sl: Messages = {
   "shape.pen": "Prostoročno",
   "shape.arrow": "Puščica",
   "shape.rect": "Pravokotnik",
+  "shape.text": "Besedilo",
   "zoom.in": "Povečaj",
   "zoom.out": "Pomanjšaj",
   "zoom.fit": "Prilagodi širini",

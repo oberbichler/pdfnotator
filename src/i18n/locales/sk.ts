@@ -45,6 +45,7 @@ const sk: Messages = {
   "shape.pen": "Voľná ruka",
   "shape.arrow": "Šípka",
   "shape.rect": "Obdĺžnik",
+  "shape.text": "Text",
   "zoom.in": "Priblížiť",
   "zoom.out": "Oddialiť",
   "zoom.fit": "Prispôsobiť šírke",

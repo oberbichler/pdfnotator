@@ -27,6 +27,8 @@ pub enum ShapeKind {
     Pen,
     Arrow,
     Rect,
+    /// Note typed onto the page.
+    Text,
 }
 
 /// One shape of a sketch, described for the agent. Positions in mm from the
@@ -54,6 +56,9 @@ pub struct FeedbackShape {
     pub from_text: Option<String>,
     #[serde(default)]
     pub to_text: Option<String>,
+    /// Typed note (text shapes).
+    #[serde(default)]
+    pub label: Option<String>,
 }
 
 /// One comment from the user.

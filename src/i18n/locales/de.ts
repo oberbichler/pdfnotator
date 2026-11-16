@@ -40,6 +40,7 @@ const de: Messages = {
   "shape.pen": "Freihand",
   "shape.arrow": "Pfeil",
   "shape.rect": "Rechteck",
+  "shape.text": "Text",
   "zoom.in": "Vergrößern",
   "zoom.out": "Verkleinern",
   "zoom.fit": "Breite einpassen",

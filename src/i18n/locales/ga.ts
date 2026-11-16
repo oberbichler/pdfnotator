@@ -47,6 +47,7 @@ const ga: Messages = {
   "shape.pen": "Saorlámh",
   "shape.arrow": "Saighead",
   "shape.rect": "Dronuilleog",
+  "shape.text": "Téacs",
   "zoom.in": "Zúmáil isteach",
   "zoom.out": "Zúmáil amach",
   "zoom.fit": "Oiriúnaigh don leithead",

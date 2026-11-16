@@ -47,6 +47,7 @@ const en = {
   "shape.pen": "Freehand",
   "shape.arrow": "Arrow",
   "shape.rect": "Rectangle",
+  "shape.text": "Text",
   "zoom.in": "Zoom in",
   "zoom.out": "Zoom out",
   "zoom.fit": "Fit width",

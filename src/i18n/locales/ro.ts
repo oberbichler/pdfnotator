@@ -44,6 +44,7 @@ const ro: Messages = {
   "shape.pen": "Mână liberă",
   "shape.arrow": "Săgeată",
   "shape.rect": "Dreptunghi",
+  "shape.text": "Text",
   "zoom.in": "Mărește",
   "zoom.out": "Micșorează",
   "zoom.fit": "Potrivește la lățime",

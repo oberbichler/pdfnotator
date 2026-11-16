@@ -48,7 +48,7 @@
 
 Select text and start typing — the comment box opens right away (`⇥` switches to **Replace** or **Delete**).
 Press `R` and drag → screenshot comment.
-Press `D` and draw on the page (`⇥`: freehand, arrow, rectangle), then just start typing → sketch comment.
+Press `D` and draw on the page (`⇥`: freehand, arrow, rectangle, text note), then just start typing → sketch comment.
 The agent picks your comments up, edits the `.typ`, and the PDF updates by itself — you never press reload.
 Several agents can work on several documents at once — each gets its own tab.
 

@@ -45,6 +45,7 @@ const cs: Messages = {
   "shape.pen": "Volná ruka",
   "shape.arrow": "Šipka",
   "shape.rect": "Obdélník",
+  "shape.text": "Text",
   "zoom.in": "Přiblížit",
   "zoom.out": "Oddálit",
   "zoom.fit": "Přizpůsobit šířce",

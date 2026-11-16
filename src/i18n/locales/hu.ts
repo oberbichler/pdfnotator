@@ -40,6 +40,7 @@ const hu: Messages = {
   "shape.pen": "Szabadkézi",
   "shape.arrow": "Nyíl",
   "shape.rect": "Téglalap",
+  "shape.text": "Szöveg",
   "zoom.in": "Nagyítás",
   "zoom.out": "Kicsinyítés",
   "zoom.fit": "Szélességhez igazítás",

@@ -46,6 +46,7 @@ const mt: Messages = {
   "shape.pen": "Idejn ħielsa",
   "shape.arrow": "Vleġġa",
   "shape.rect": "Rettangolu",
+  "shape.text": "Test",
   "zoom.in": "Kabbar",
   "zoom.out": "Ċekken",
   "zoom.fit": "Daħħal fil-wisa’",

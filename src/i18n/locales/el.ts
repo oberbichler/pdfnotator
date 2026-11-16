@@ -40,6 +40,7 @@ const el: Messages = {
   "shape.pen": "Ελεύθερο χέρι",
   "shape.arrow": "Βέλος",
   "shape.rect": "Ορθογώνιο",
+  "shape.text": "Κείμενο",
   "zoom.in": "Μεγέθυνση",
   "zoom.out": "Σμίκρυνση",
   "zoom.fit": "Προσαρμογή στο πλάτος",
