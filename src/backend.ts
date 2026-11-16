@@ -14,6 +14,8 @@ export interface DocStatus {
   compileError: string | null;
   version: number;
   listeners: number;
+  /** Names of the agents waiting for feedback (as far as they told us). */
+  agents: string[];
   pending: number;
   currentPage: number;
   pageCount: number;

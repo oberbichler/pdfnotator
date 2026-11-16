@@ -6,6 +6,7 @@ const sl: Messages = {
   "agent.none": "Ni agenta",
   "agent.noneHint": "Agentu recite „odpri v pdfnotator“ ali prilepite začetni poziv.",
   "agent.listening": "Agent posluša",
+  "agent.listeningAs": "{name} posluša",
   "agent.listeningHint": "Komentarji takoj dosežejo agenta.",
   "agent.working": "Agent dela",
   "agent.workingHint": "Novi komentarji se zbirajo in predajo ob naslednjem prevzemu.",

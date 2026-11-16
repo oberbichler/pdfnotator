@@ -4,6 +4,7 @@ import { onLocaleChange, t } from "../i18n";
 import { activate, type DocState, type State, state, subscribe } from "../store";
 import { byId, h } from "./dom";
 import { icon } from "./icons";
+import { listeningLabel } from "./status";
 
 let root: HTMLElement;
 
@@ -26,7 +27,7 @@ function tab(doc: DocState, active: boolean): HTMLElement {
 
   const activity = tabActivity(doc);
   const dot = h("span", `tab-dot ${activity}`);
-  dot.title = activity === "on" ? t("agent.listening") : activity === "busy" ? t("agent.working") : "";
+  dot.title = activity === "on" ? listeningLabel(doc.agents) : activity === "busy" ? t("agent.working") : "";
   const name = h("span", "tab-name", fileName(doc));
   el.append(dot, name);
   if (doc.compileError) el.append(icon("alert", 12, "tab-error"));

@@ -1,5 +1,9 @@
-//! Application state: all open documents (tabs) and which agent session works
-//! on which document.
+//! Application state: all open documents (tabs) and the names of the agent
+//! sessions talking to them.
+//!
+//! Tool calls are routed by the document `path` they pass, never by the agent
+//! session: several chats can share one MCP connection (VS Code runs one
+//! server process for all its chats), so a session does not identify a document.
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -27,8 +31,8 @@ pub struct Status {
 pub struct Session {
     emitter: Arc<Emitter>,
     docs: Mutex<Vec<Arc<Document>>>,
-    /// Agent session id → document it opened last.
-    clients: Mutex<HashMap<String, DocId>>,
+    /// Agent session id → the agent's name (from MCP `clientInfo`), shown in the UI.
+    agents: Mutex<HashMap<String, String>>,
     next_id: AtomicU64,
     port: u16,
     server_error: Mutex<Option<String>>,
@@ -68,7 +72,7 @@ impl Session {
         Arc::new_cyclic(|this| Self {
             emitter: Arc::new(Emitter::default()),
             docs: Mutex::new(Vec::new()),
-            clients: Mutex::new(HashMap::new()),
+            agents: Mutex::new(HashMap::new()),
             next_id: AtomicU64::new(1),
             port,
             server_error: Mutex::new(None),
@@ -120,14 +124,9 @@ impl Session {
             .cloned()
     }
 
-    /// Open a document — in its existing tab if it is already open — and bind
-    /// the agent session `client` to it. Blocking (first typst compile).
-    pub fn open(
-        &self,
-        raw: &str,
-        root: Option<&Path>,
-        client: Option<&str>,
-    ) -> Result<(Arc<Document>, Opened), String> {
+    /// Open a document — in its existing tab if it is already open. Blocking
+    /// (first typst compile).
+    pub fn open(&self, raw: &str, root: Option<&Path>) -> Result<(Arc<Document>, Opened), String> {
         let path = paths::normalize(raw)?;
         let kind = paths::kind_of(&path)?;
         let path = path
@@ -147,9 +146,6 @@ impl Session {
                 return Err(e);
             }
         };
-        if let Some(client) = client {
-            self.clients.lock().unwrap().insert(client.to_owned(), doc.id);
-        }
         self.emitter.emit(name::FOCUS, json!({ "doc": doc.id }));
         self.emit_status();
         let file = opened.pdf.file_name().unwrap_or_default().to_string_lossy();
@@ -177,8 +173,6 @@ impl Session {
         let mut docs = self.docs.lock().unwrap();
         let idx = docs.iter().position(|d| d.id == id)?;
         let doc = docs.remove(idx);
-        drop(docs);
-        self.clients.lock().unwrap().retain(|_, d| *d != id);
         Some(doc)
     }
 
@@ -191,9 +185,27 @@ impl Session {
         }
     }
 
-    /// Find the document an agent call refers to:
-    /// explicit `path` → the client's last opened document → the only open document.
-    pub fn resolve(&self, path: Option<&str>, client: Option<&str>) -> Result<Arc<Document>, String> {
+    /// Remember the name of the agent behind session `client`.
+    pub fn set_agent_name(&self, client: &str, name: &str) {
+        let name = name.trim();
+        if name.is_empty() {
+            return;
+        }
+        let mut agents = self.agents.lock().unwrap();
+        if agents.get(client).map(String::as_str) != Some(name) {
+            agents.insert(client.to_owned(), name.chars().take(60).collect());
+        }
+    }
+
+    /// Name of the agent behind session `client`, if it told us.
+    pub fn agent_name(&self, client: Option<&str>) -> Option<String> {
+        client.and_then(|c| self.agents.lock().unwrap().get(c).cloned())
+    }
+
+    /// Find the document an agent call refers to: the explicit `path`, or the
+    /// only open document. With several documents open the path is required —
+    /// guessing could hand one chat's comments to another.
+    pub fn resolve(&self, path: Option<&str>) -> Result<Arc<Document>, String> {
         if let Some(raw) = path.filter(|p| !p.trim().is_empty()) {
             let path = paths::normalize(raw)?;
             let path = path.canonicalize().unwrap_or(path);
@@ -205,18 +217,12 @@ impl Session {
                 )
             });
         }
-        let bound = client
-            .and_then(|c| self.clients.lock().unwrap().get(c).copied())
-            .and_then(|id| self.document(id));
-        if let Some(doc) = bound {
-            return Ok(doc);
-        }
         let docs = self.documents();
         match docs.as_slice() {
             [only] => Ok(only.clone()),
             [] => Err("No document is open — call open_pdf first.".into()),
             _ => Err(format!(
-                "Several documents are open; pass `path` to say which one.{}",
+                "Several documents are open; pass `path` (the one open_pdf returned).{}",
                 self.open_list()
             )),
         }
@@ -285,48 +291,58 @@ mod tests {
         let sink = Arc::new(RecordingSink::default());
         s.set_sink(sink.clone());
         let dir = tempfile::tempdir().unwrap();
-        let (a, _) = s.open(&pdf_in(&dir, "a.pdf"), None, Some("agent-1")).unwrap();
-        let (b, _) = s.open(&pdf_in(&dir, "b.pdf"), None, Some("agent-2")).unwrap();
+        let (a, _) = s.open(&pdf_in(&dir, "a.pdf"), None).unwrap();
+        let (b, _) = s.open(&pdf_in(&dir, "b.pdf"), None).unwrap();
         assert_ne!(a.id, b.id);
-        let (a2, _) = s
-            .open(dir.path().join("a.pdf").to_str().unwrap(), None, None)
-            .unwrap();
+        let (a2, _) = s.open(dir.path().join("a.pdf").to_str().unwrap(), None).unwrap();
         assert_eq!(a.id, a2.id, "same file → same tab");
         assert_eq!(s.status().documents.len(), 2);
         assert_eq!(sink.last(name::FOCUS).unwrap()["doc"], a.id);
     }
 
     #[test]
-    fn resolves_documents_for_agents() {
+    fn resolves_documents_by_path() {
         let s = Session::new(0);
         let dir = tempfile::tempdir().unwrap();
-        assert!(s.resolve(None, None).unwrap_err().contains("No document"));
-        let (a, _) = s.open(&pdf_in(&dir, "a.pdf"), None, Some("one")).unwrap();
-        assert_eq!(
-            s.resolve(None, None).unwrap().id,
-            a.id,
-            "single tab is the default"
-        );
-        let (b, _) = s.open(&pdf_in(&dir, "b.pdf"), None, Some("two")).unwrap();
+        assert!(s.resolve(None).unwrap_err().contains("No document"));
+        let (a, _) = s.open(&pdf_in(&dir, "a.pdf"), None).unwrap();
+        assert_eq!(s.resolve(None).unwrap().id, a.id, "single tab is the default");
+        let (b, _) = s.open(&pdf_in(&dir, "b.pdf"), None).unwrap();
 
-        assert_eq!(s.resolve(None, Some("one")).unwrap().id, a.id);
-        assert_eq!(s.resolve(None, Some("two")).unwrap().id, b.id);
-        let err = s.resolve(None, Some("unknown")).unwrap_err();
+        // never guess with several tabs: one chat would get another chat's comments
+        let err = s.resolve(None).unwrap_err();
         assert!(
             err.contains("pass `path`") && err.contains("a.pdf") && err.contains("b.pdf"),
             "{err}"
         );
         let by_path = s
-            .resolve(Some(dir.path().join("b.pdf").to_str().unwrap()), Some("one"))
+            .resolve(Some(dir.path().join("b.pdf").to_str().unwrap()))
             .unwrap();
-        assert_eq!(by_path.id, b.id, "explicit path wins over the client binding");
+        assert_eq!(by_path.id, b.id);
+        assert_eq!(
+            s.resolve(Some(dir.path().join("a.pdf").to_str().unwrap()))
+                .unwrap()
+                .id,
+            a.id
+        );
         // built from the tempdir: "/nope/x.pdf" is not absolute on Windows
         let missing = dir.path().join("nope").join("x.pdf");
         assert!(
-            s.resolve(Some(missing.to_str().unwrap()), None)
+            s.resolve(Some(missing.to_str().unwrap()))
                 .unwrap_err()
                 .contains("not open")
         );
+    }
+
+    #[test]
+    fn remembers_agent_names() {
+        let s = Session::new(0);
+        assert_eq!(s.agent_name(Some("x")), None);
+        s.set_agent_name("x", "  ");
+        assert_eq!(s.agent_name(Some("x")), None);
+        s.set_agent_name("x", "GitHub Copilot CLI");
+        assert_eq!(s.agent_name(Some("x")).as_deref(), Some("GitHub Copilot CLI"));
+        assert_eq!(s.agent_name(None), None);
     }
 
     #[tokio::test]
@@ -335,7 +351,7 @@ mod tests {
         let sink = Arc::new(RecordingSink::default());
         s.set_sink(sink.clone());
         let dir = tempfile::tempdir().unwrap();
-        let (doc, _) = s.open(&pdf_in(&dir, "a.pdf"), None, Some("c")).unwrap();
+        let (doc, _) = s.open(&pdf_in(&dir, "a.pdf"), None).unwrap();
         let waiter = {
             let doc = doc.clone();
             tokio::spawn(async move {
@@ -349,7 +365,7 @@ mod tests {
         s.close(doc.id);
         assert!(waiter.await.unwrap().is_err());
         assert!(s.documents().is_empty());
-        assert!(s.resolve(None, Some("c")).is_err());
+        assert!(s.resolve(None).is_err());
         assert_eq!(sink.last(name::DOC_CLOSED).unwrap()["doc"], doc.id);
     }
 
@@ -359,14 +375,14 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let missing = dir.path().join("not-here.pdf");
         assert!(
-            s.open(missing.to_str().unwrap(), None, None)
+            s.open(missing.to_str().unwrap(), None)
                 .unwrap_err()
                 .contains("does not exist")
         );
         let docx = dir.path().join("a.docx");
         std::fs::write(&docx, b"x").unwrap();
         assert!(
-            s.open(docx.to_str().unwrap(), None, None)
+            s.open(docx.to_str().unwrap(), None)
                 .unwrap_err()
                 .contains("unsupported")
         );

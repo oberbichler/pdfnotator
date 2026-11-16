@@ -6,6 +6,7 @@ const da: Messages = {
   "agent.none": "Ingen agent",
   "agent.noneHint": "Sig »åbn i pdfnotator« til din agent, eller indsæt startprompten.",
   "agent.listening": "Agenten lytter",
+  "agent.listeningAs": "{name} lytter",
   "agent.listeningHint": "Kommentarer når agenten med det samme.",
   "agent.working": "Agenten arbejder",
   "agent.workingHint": "Nye kommentarer samles og overdrages ved næste hentning.",

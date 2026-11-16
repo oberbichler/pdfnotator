@@ -11,6 +11,7 @@ export function docStatus(id: number, patch: Partial<DocStatus> = {}): DocStatus
     compileError: null,
     version: 1,
     listeners: 0,
+    agents: [],
     pending: 0,
     currentPage: 1,
     pageCount: 3,

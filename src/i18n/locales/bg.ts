@@ -6,6 +6,7 @@ const bg: Messages = {
   "agent.none": "Няма агент",
   "agent.noneHint": "Кажете на агента „отвори в pdfnotator“ или поставете началния промпт.",
   "agent.listening": "Агентът слуша",
+  "agent.listeningAs": "{name} слуша",
   "agent.listeningHint": "Коментарите достигат до агента веднага.",
   "agent.working": "Агентът работи",
   "agent.workingHint": "Новите коментари се събират и се предават при следващото извличане.",

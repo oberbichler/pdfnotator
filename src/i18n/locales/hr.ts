@@ -6,6 +6,7 @@ const hr: Messages = {
   "agent.none": "Nema agenta",
   "agent.noneHint": "Recite agentu „otvori u pdfnotator“ ili zalijepite početni prompt.",
   "agent.listening": "Agent sluša",
+  "agent.listeningAs": "{name} sluša",
   "agent.listeningHint": "Komentari odmah stižu do agenta.",
   "agent.working": "Agent radi",
   "agent.workingHint": "Novi komentari se prikupljaju i predaju pri sljedećem preuzimanju.",

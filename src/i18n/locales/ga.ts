@@ -6,6 +6,7 @@ const ga: Messages = {
   "agent.none": "Gan aon ghníomhaire",
   "agent.noneHint": "Abair le do ghníomhaire “oscail in pdfnotator” nó greamaigh an leid tosaigh.",
   "agent.listening": "Gníomhaire ag éisteacht",
+  "agent.listeningAs": "{name} ag éisteacht",
   "agent.listeningHint": "Sroicheann tráchtanna an gníomhaire láithreach.",
   "agent.working": "Gníomhaire ag obair",
   "agent.workingHint":

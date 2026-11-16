@@ -327,6 +327,7 @@ mod tests {
             compile_error: None,
             version: 1,
             listeners: 0,
+            agents: Vec::new(),
             pending: 0,
             current_page: 2,
             page_count: 5,

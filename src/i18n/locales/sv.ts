@@ -6,6 +6,7 @@ const sv: Messages = {
   "agent.none": "Ingen agent",
   "agent.noneHint": "Säg ”öppna i pdfnotator” till din agent eller klistra in startprompten.",
   "agent.listening": "Agenten lyssnar",
+  "agent.listeningAs": "{name} lyssnar",
   "agent.listeningHint": "Kommentarer når agenten direkt.",
   "agent.working": "Agenten arbetar",
   "agent.workingHint": "Nya kommentarer samlas in och lämnas över vid nästa hämtning.",

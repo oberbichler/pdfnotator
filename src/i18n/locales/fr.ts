@@ -6,6 +6,7 @@ const fr: Messages = {
   "agent.none": "Aucun agent",
   "agent.noneHint": "Dites à votre agent « ouvre dans pdfnotator » ou collez le prompt de démarrage.",
   "agent.listening": "Agent à l’écoute",
+  "agent.listeningAs": "{name} à l’écoute",
   "agent.listeningHint": "Les commentaires parviennent immédiatement à l’agent.",
   "agent.working": "Agent au travail",
   "agent.workingHint":

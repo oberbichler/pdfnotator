@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+
+- Agent calls are routed by the document `path` only: `wait_for_feedback`, `reply` and `get_comments` require
+  it. Before, a call without `path` went to the document the agent session had opened last — but VS Code runs
+  one MCP server for all its chats, so one chat could wait on, and take the comments of, another chat's tab.
+- When another agent starts waiting on a tab, the agent it replaces is told who took over and to stop waiting,
+  instead of retrying and pushing the other one out again.
+- The status chip and the tab show which agent is listening (e.g. "GitHub Copilot CLI listening").
+
 ## [0.4.0] - 2026-11-16
 
 ### Added

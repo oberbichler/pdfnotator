@@ -6,6 +6,7 @@ const el: Messages = {
   "agent.none": "Κανένας agent",
   "agent.noneHint": "Πείτε στον agent σας «άνοιξε στο pdfnotator» ή επικολλήστε το αρχικό prompt.",
   "agent.listening": "Ο agent ακούει",
+  "agent.listeningAs": "Το {name} ακούει",
   "agent.listeningHint": "Τα σχόλια φτάνουν αμέσως στον agent.",
   "agent.working": "Ο agent εργάζεται",
   "agent.workingHint": "Τα νέα σχόλια συλλέγονται και παραδίδονται στην επόμενη λήψη.",
