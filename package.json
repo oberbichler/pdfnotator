@@ -1,7 +1,7 @@
 {
   "name": "pdfnotator",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "PDF viewer for pair-designing Typst documents with AI coding agents via MCP",
   "license": "ISC",
   "type": "module",
