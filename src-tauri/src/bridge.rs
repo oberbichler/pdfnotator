@@ -269,7 +269,7 @@ impl Bridge {
 
 /// Tool calls that can run twice without side effects.
 fn retry_safe(line: &str) -> bool {
-    serde_json::from_str::<Value>(line).ok().is_some_and(|msg| {
+    serde_json::from_str::<Value>(line).is_ok_and(|msg| {
         matches!(
             msg.pointer("/params/name").and_then(Value::as_str),
             Some("wait_for_feedback" | "get_comments" | "viewer_status")
