@@ -55,7 +55,10 @@ pub struct Opened {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum WaitEnd {
     TimedOut,
+    /// The user closed the tab: the review is over.
     Closed,
+    /// pdfnotator quit (update, restart, logout) — not a sign the review is over.
+    Quit,
     /// A newer `wait_for_feedback` for this document took over: from the
     /// same agent session (`by` is `None`) or from another one (its name, or
     /// "another agent").
@@ -119,6 +122,8 @@ pub struct Document {
     /// The newest wait's agent: who superseded the older ones.
     latest_waiter: Mutex<Waiter>,
     next_wait: AtomicU64,
+    /// Closed because the app quits, not because the user closed the tab.
+    quitting: std::sync::atomic::AtomicBool,
 }
 
 impl std::fmt::Debug for Document {
@@ -144,6 +149,7 @@ impl Document {
             waiters: Mutex::default(),
             latest_waiter: Mutex::default(),
             next_wait: AtomicU64::new(0),
+            quitting: std::sync::atomic::AtomicBool::new(false),
         })
     }
 
@@ -399,6 +405,7 @@ impl Document {
         let items = match outcome {
             WaitOutcome::Items(items) => items,
             WaitOutcome::TimedOut => return Err(WaitEnd::TimedOut),
+            WaitOutcome::Closed if self.quitting.load(Ordering::SeqCst) => return Err(WaitEnd::Quit),
             WaitOutcome::Closed => return Err(WaitEnd::Closed),
             WaitOutcome::Superseded => {
                 let latest = self.latest_waiter.lock().unwrap().clone();
@@ -438,6 +445,12 @@ impl Document {
     }
 
     /// Stop background work and release waiting agents.
+    /// Stop because the app quits: waiting agents are told to come back.
+    pub fn quit(&self) {
+        self.quitting.store(true, Ordering::SeqCst);
+        self.close();
+    }
+
     pub fn close(&self) {
         self.feedback.close();
         let mut inner = self.inner.lock().unwrap();

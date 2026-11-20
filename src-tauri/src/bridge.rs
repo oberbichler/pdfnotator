@@ -15,6 +15,9 @@ use serde_json::{Value, json};
 use crate::mcp::{self, Request};
 
 const LAUNCH_TIMEOUT: Duration = Duration::from_secs(20);
+/// How often a running tool call reports progress (when the client asked for
+/// it): clients that reset their timeout on progress keep long waits alive.
+const PROGRESS_INTERVAL: Duration = Duration::from_secs(15);
 
 /// Run the bridge on stdin/stdout until stdin closes.
 pub fn run(port: u16) {
@@ -36,7 +39,13 @@ pub fn run(port: u16) {
                 let bridge = bridge.clone();
                 let write = write.clone();
                 std::thread::spawn(move || {
+                    let done = Arc::new(std::sync::atomic::AtomicBool::new(false));
+                    if let Some(token) = req.params.pointer("/_meta/progressToken").cloned() {
+                        let (done, write) = (done.clone(), write.clone());
+                        std::thread::spawn(move || keep_alive(&token, &done, PROGRESS_INTERVAL, write));
+                    }
                     let resp = bridge.forward(&line, req.id.clone());
+                    done.store(true, std::sync::atomic::Ordering::SeqCst);
                     // the client must not get a response for a call it cancelled
                     if !bridge.take_cancelled(&req.id) {
                         write(&resp);
@@ -49,6 +58,31 @@ pub fn run(port: u16) {
                 std::thread::spawn(move || bridge.notify_viewer(&line));
             }
         }
+    }
+}
+
+/// Send `notifications/progress` for `token` until `done`.
+fn keep_alive(
+    token: &Value,
+    done: &std::sync::atomic::AtomicBool,
+    interval: Duration,
+    write: impl Fn(&Value),
+) {
+    let mut ticks = 0u64;
+    loop {
+        // sleep in short steps so the thread ends soon after the call does
+        for _ in 0..interval.as_millis() / 50 {
+            if done.load(std::sync::atomic::Ordering::SeqCst) {
+                return;
+            }
+            std::thread::sleep(Duration::from_millis(50));
+        }
+        ticks += 1;
+        write(&json!({
+            "jsonrpc": "2.0",
+            "method": "notifications/progress",
+            "params": { "progressToken": token, "progress": ticks, "message": "waiting for the user" }
+        }));
     }
 }
 
@@ -158,11 +192,23 @@ impl Bridge {
 
     /// Forward a raw request to the viewer, launching it if necessary.
     pub fn forward(&self, line: &str, id: Value) -> Value {
-        let result = {
-            let _launching = self.launch.lock().unwrap();
-            self.ensure_viewer()
-        }
-        .and_then(|()| self.post(line));
+        let attempt = || {
+            {
+                let _launching = self.launch.lock().unwrap();
+                self.ensure_viewer()
+            }
+            .and_then(|()| self.post(line))
+        };
+        // The viewer may quit mid-call (update, restart). Calls that only read
+        // are retried once against a freshly started viewer.
+        let result = attempt().or_else(|e| {
+            if retry_safe(line) {
+                std::thread::sleep(Duration::from_millis(500));
+                attempt()
+            } else {
+                Err(e)
+            }
+        });
         result.unwrap_or_else(|e| {
             mcp::response(
                 id,
@@ -219,6 +265,16 @@ impl Bridge {
             LAUNCH_TIMEOUT.as_secs()
         ))
     }
+}
+
+/// Tool calls that can run twice without side effects.
+fn retry_safe(line: &str) -> bool {
+    serde_json::from_str::<Value>(line).is_ok_and(|msg| {
+        matches!(
+            msg.pointer("/params/name").and_then(Value::as_str),
+            Some("wait_for_feedback" | "get_comments" | "viewer_status")
+        )
+    })
 }
 
 /// Start the GUI. Inside a macOS bundle `LaunchServices` is used so the app
@@ -301,6 +357,39 @@ mod tests {
             };
             assert_eq!(r["error"]["code"], mcp::code::METHOD_NOT_FOUND, "{method}");
         }
+    }
+
+    #[test]
+    fn retries_only_calls_without_side_effects() {
+        let call = |name: &str| {
+            format!(r#"{{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{{"name":"{name}"}}}}"#)
+        };
+        assert!(retry_safe(&call("wait_for_feedback")));
+        assert!(retry_safe(&call("get_comments")));
+        assert!(!retry_safe(&call("reply")), "a retried reply could show twice");
+        assert!(!retry_safe(&call("open_pdf")));
+    }
+
+    #[test]
+    fn reports_progress_until_the_call_ends() {
+        let done = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let sent = Arc::new(Mutex::new(Vec::new()));
+        let worker = {
+            let (done, sent) = (done.clone(), sent.clone());
+            std::thread::spawn(move || {
+                keep_alive(&json!("tok"), &done, Duration::from_millis(300), |v: &Value| {
+                    sent.lock().unwrap().push(v.clone());
+                });
+            })
+        };
+        // let one interval pass
+        std::thread::sleep(Duration::from_millis(450));
+        done.store(true, std::sync::atomic::Ordering::SeqCst);
+        worker.join().unwrap();
+        let sent = sent.lock().unwrap();
+        assert_eq!(sent.len(), 1, "{sent:?}");
+        assert_eq!(sent[0]["method"], "notifications/progress");
+        assert_eq!(sent[0]["params"]["progressToken"], "tok");
     }
 
     #[test]
