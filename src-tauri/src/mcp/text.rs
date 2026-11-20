@@ -102,8 +102,14 @@ pub enum Detail {
 pub fn feedback_content(items: &[FeedbackItem], status: &DocStatus, image_dir: &Path) -> Vec<Value> {
     let note = compile_note(status.compile_error.as_deref());
     if items.is_empty() {
+        let doc = status
+            .source
+            .as_deref()
+            .or(status.path.as_deref())
+            .unwrap_or_default();
         return vec![text(format!(
-            "No feedback yet (user on page {}/{}). Call wait_for_feedback again.{note}",
+            "No feedback yet (user on page {}/{}). Keep waiting: call wait_for_feedback again with path \"{doc}\" \
+             until the user says they are done.{note}",
             status.current_page, status.page_count
         ))];
     }

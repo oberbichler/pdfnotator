@@ -18,7 +18,10 @@ use super::text::{compile_note, details_content, feedback_content, text};
 use crate::document::{Document, WaitEnd, Waiter};
 use crate::session::Session;
 
-const DEFAULT_WAIT: Duration = Duration::from_secs(600);
+/// Below the ~60 s after which MCP clients commonly abort a tool call: an
+/// aborted wait surfaces as an error, and agents then often stop the loop.
+/// An empty result just tells them to call again.
+const DEFAULT_WAIT: Duration = Duration::from_secs(50);
 const MAX_WAIT: Duration = Duration::from_secs(3600);
 
 const PATH_PARAM: &str = "Document path, as returned by open_pdf";
@@ -55,7 +58,7 @@ pub fn definitions() -> Value {
                     "timeout_seconds": {
                         "type": "integer",
                         "minimum": 0,
-                        "description": "Max wait (default 600; 0 = only fetch queued comments)"
+                        "description": "Max wait in seconds (default 50; 0 = only fetch queued comments)"
                     }
                 },
                 "required": ["path"]
@@ -115,7 +118,7 @@ pub async fn call(session: &Arc<Session>, client: Option<&str>, params: &Value, 
     let path = args.get("path").and_then(Value::as_str);
     let result = match name {
         "open_pdf" => open_pdf(session, &args).await,
-        "wait_for_feedback" => match session.resolve(path) {
+        "wait_for_feedback" => match resolve_or_reopen(session, path).await {
             Ok(doc) => {
                 let waiter = Waiter {
                     client: client.map(str::to_owned),
@@ -125,11 +128,11 @@ pub async fn call(session: &Arc<Session>, client: Option<&str>, params: &Value, 
             }
             Err(e) => Err(e),
         },
-        "reply" => match session.resolve(path) {
+        "reply" => match resolve_or_reopen(session, path).await {
             Ok(doc) => Ok(reply(&doc, &args).await),
             Err(e) => Err(e),
         },
-        "get_comments" => match session.resolve(path) {
+        "get_comments" => match resolve_or_reopen(session, path).await {
             Ok(doc) => get_comments(&doc, &args),
             Err(e) => Err(e),
         },
@@ -140,6 +143,24 @@ pub async fn call(session: &Arc<Session>, client: Option<&str>, params: &Value, 
         Ok(content) => json!({ "content": content, "isError": false }),
         Err(e) => json!({ "content": [text(e)], "isError": true }),
     }
+}
+
+/// The document for `path`; if pdfnotator was restarted (or the tab closed by
+/// a crash) and the file still exists, it is opened again so the agent's loop
+/// survives instead of failing with "not open".
+async fn resolve_or_reopen(session: &Arc<Session>, path: Option<&str>) -> Result<Arc<Document>, String> {
+    let err = match session.resolve(path) {
+        Ok(doc) => return Ok(doc),
+        Err(e) => e,
+    };
+    let Some(raw) = path.filter(|p| std::path::Path::new(p).is_file()) else {
+        return Err(err);
+    };
+    let (session, raw) = (Arc::clone(session), raw.to_owned());
+    tokio::task::spawn_blocking(move || session.open(&raw, None))
+        .await
+        .map_err(|e| e.to_string())?
+        .map(|(doc, _)| doc)
 }
 
 /// Path the agent should pass in follow-up calls.
@@ -189,6 +210,13 @@ async fn wait_for_feedback(doc: &Document, args: &Value, cancel: &Notify, waiter
         .min(MAX_WAIT);
     let items = match doc.wait_for_feedback_as(timeout, cancel, waiter).await {
         Ok(items) => items,
+        Err(WaitEnd::Quit) => {
+            return vec![text(format!(
+                "pdfnotator was quit (e.g. for an update). Call wait_for_feedback again with path \"{}\" — that \
+                 restarts pdfnotator and reopens the document. Stop only if the user said they are done.",
+                doc_path(doc)
+            ))];
+        }
         Err(WaitEnd::Closed) => {
             return vec![text(format!(
                 "The user closed {} in pdfnotator. The review is finished — stop calling wait_for_feedback.",
@@ -401,6 +429,64 @@ mod tests {
         let status = result_text(&r);
         assert!(status.contains("Open documents (2)"), "{status}");
         assert!(status.contains(&format!("Document: {}", a.display())), "{status}");
+    }
+
+    #[tokio::test]
+    async fn a_restarted_viewer_reopens_the_document() {
+        let session = Session::new(0);
+        let dir = tempfile::tempdir().unwrap();
+        let file = pdf(&dir, "x.pdf");
+        // pdfnotator was restarted: the agent still waits with the path it got from open_pdf
+        assert!(session.documents().is_empty());
+        let wait =
+            json!({ "name": "wait_for_feedback", "arguments": { "path": file, "timeout_seconds": 0 } });
+        let r = call(&Notify::new(), &session, Some("a"), &wait).await;
+        assert_eq!(r["isError"], false, "{r}");
+        assert!(result_text(&r).contains("Keep waiting"), "{r}");
+        assert!(result_text(&r).contains(&format!("path \"{}\"", file.display())));
+        assert_eq!(session.documents().len(), 1, "the tab is back");
+
+        let missing = dir.path().join("gone.pdf");
+        let r = call(
+            &Notify::new(),
+            &session,
+            Some("a"),
+            &json!({ "name": "wait_for_feedback", "arguments": { "path": missing, "timeout_seconds": 0 } }),
+        )
+        .await;
+        assert_eq!(r["isError"], true, "a missing file is not reopened");
+    }
+
+    #[tokio::test]
+    async fn quitting_the_app_does_not_end_the_review() {
+        let session = Session::new(0);
+        let dir = tempfile::tempdir().unwrap();
+        let file = pdf(&dir, "x.pdf");
+        call(
+            &Notify::new(),
+            &session,
+            Some("a"),
+            &json!({ "name": "open_pdf", "arguments": { "path": file } }),
+        )
+        .await;
+        let doc = session.documents()[0].clone();
+        let waiter = {
+            let (session, file) = (session.clone(), file.clone());
+            tokio::spawn(async move {
+                let wait = json!({ "name": "wait_for_feedback", "arguments": { "path": file } });
+                call(&Notify::new(), &session, Some("a"), &wait).await
+            })
+        };
+        while doc.feedback.listeners() == 0 {
+            tokio::task::yield_now().await;
+        }
+        session.shutdown(); // app quits (update, Cmd+Q, logout)
+        let text = result_text(&waiter.await.unwrap());
+        assert!(
+            text.contains("was quit") && text.contains("Call wait_for_feedback again"),
+            "{text}"
+        );
+        assert!(!text.contains("stop calling"), "{text}");
     }
 
     #[tokio::test]

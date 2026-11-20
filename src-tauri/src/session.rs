@@ -274,7 +274,7 @@ impl Session {
     /// Stop background work before exit.
     pub fn shutdown(&self) {
         for doc in self.documents() {
-            doc.close();
+            doc.quit();
         }
     }
 }

@@ -6,6 +6,17 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+
+- Agents stopped receiving comments after pdfnotator quit (an update, `⌘Q`, logout): quitting closed every tab
+  and told waiting agents “the review is finished — stop calling wait_for_feedback”. They are now told the app
+  was quit and to call again; that call restarts pdfnotator and reopens the document, as does any call with a
+  path that is no longer open.
+- Agents dropped out of the feedback loop when their client aborted a long `wait_for_feedback` (many abort tool
+  calls after about 60 s). Waits now return after 50 s by default with “keep waiting”, and the stdio bridge sends
+  progress notifications so clients that honour them keep longer waits alive. If the viewer disappears during a
+  wait, the bridge restarts it and retries.
+
 ## [0.7.0] - 2026-11-16
 
 ### Added
