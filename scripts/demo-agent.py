@@ -4,7 +4,7 @@
 Talks to a running PDFnotator over streamable HTTP exactly like a real agent:
 waits for feedback, edits the Typst source and replies. Standard library only.
 
-usage: demo-agent.py <port> <document.typ> <done-marker>
+usage: demo-agent.py <port> <document.typ> <done-marker> <second-document.typ>
 """
 
 import json
@@ -13,7 +13,7 @@ import sys
 import time
 import urllib.request
 
-PORT, DOC, DONE = int(sys.argv[1]), sys.argv[2], sys.argv[3]
+PORT, DOC, DONE, SECOND = int(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4]
 URL = f"http://127.0.0.1:{PORT}/mcp"
 HEADERS = {"Content-Type": "application/json", "mcp-session-id": "demo-agent"}
 
@@ -72,20 +72,45 @@ edit("roughly 30 %", "roughly 30 %#footnote[Cost model v2, appendix A: hosting, 
 time.sleep(1.2)
 call("reply", message="Added the source as a footnote.", resolved_ids=[first])
 
-# 2 · area comment → turn the paragraph into a table
+# 2 · replace
 second = wait_for_comment()
+time.sleep(1.2)
+edit("twelve virtual machines", "14 virtual machines")
+time.sleep(1.0)
+call("reply", message="Replaced.", resolved_ids=[second])
+
+# 3 · delete
+third = wait_for_comment()
+time.sleep(1.0)
+edit("in December regularly exceed", "in December exceed")
+time.sleep(1.0)
+call("reply", message="Deleted.", resolved_ids=[third])
+
+# 4 · area comment → turn the paragraph into a table
+area = wait_for_comment()
 time.sleep(1.4)
 edit(COSTS, COST_TABLE)
 time.sleep(1.2)
-call("reply", message="Turned the cost figures into a table.", resolved_ids=[second])
+call("reply", message="Turned the cost figures into a table.", resolved_ids=[area])
 
-# 3 · sketch: loop around "Risks" with an arrow up to the costs → move the section
-third = wait_for_comment()
+# 5 · sketch: loop around "Risks", an arrow up to the costs and a note → move the section
+sketch = wait_for_comment()
 time.sleep(1.4)
 edit(RISKS, "")
 edit("= Costs and benefits", RISKS.strip() + "\n\n= Costs and benefits")
 time.sleep(1.2)
-call("reply", message="Moved the risks section before the costs.", resolved_ids=[third])
+call("reply", message="Moved the risks section before the costs.", resolved_ids=[sketch])
+
+# 6 · message to the agent
+message = wait_for_comment()
+time.sleep(1.2)
+edit("Cloud Migration Proposal", "Cloud Migration")
+time.sleep(1.0)
+call("reply", message="Shortened the title.", resolved_ids=[message])
+
+# the agent opens a second document: each one gets its own tab
+time.sleep(1.5)
+call("open_pdf", path=SECOND)
 
 # back to listening, like a real agent loop; the recorder stops shortly after
 open(DONE, "w").close()

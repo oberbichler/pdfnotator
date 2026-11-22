@@ -14,8 +14,17 @@ import { commentArea, textInRect } from "./ui/area-tool";
 import { setTool } from "./ui/dock";
 import { autoGrow, byId, h } from "./ui/dom";
 import { placeRect } from "./ui/marks";
+import { closeSearch, openSearch, step } from "./ui/search";
 import { selectionAction } from "./ui/selection";
-import { beginShape, commentSketch, endShape, extendCurrent, setShape } from "./ui/sketch-tool";
+import {
+  beginShape,
+  commentSketch,
+  commitNote,
+  endShape,
+  extendCurrent,
+  placeNote,
+  setShape,
+} from "./ui/sketch-tool";
 import type { NRect, PageView, Viewer } from "./viewer";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -142,7 +151,7 @@ class Pointer {
 }
 
 /** Drag-select `phrase` word by word, then release (the composer opens). */
-async function dragSelect(viewer: Viewer, pointer: Pointer, phrase: string): Promise<void> {
+async function dragSelect(viewer: Viewer, pointer: Pointer, phrase: string, open = true): Promise<void> {
   const full = await until(() => findRange(viewer, 0, phrase));
   const node = full.startContainer;
   const start = full.startOffset;
@@ -160,7 +169,25 @@ async function dragSelect(viewer: Viewer, pointer: Pointer, phrase: string): Pro
   }
   pointer.press(false);
   select(full);
-  selectionAction("comment");
+  if (open) selectionAction("comment");
+}
+
+/** Press a key in the composer (e.g. Tab cycles comment → replace → delete). */
+function composerKey(key: string): void {
+  byId("cmp-input").dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
+}
+
+/** Show a pressed key as a small keycap next to the pointer. */
+async function keycap(pointer: Pointer, label: string, ms = 700): Promise<void> {
+  const cap = h("div", "demo-keycap");
+  cap.textContent = label;
+  cap.style.cssText =
+    `position:fixed;left:${pointer.x + 18}px;top:${pointer.y + 18}px;z-index:9999;padding:3px 9px;` +
+    "border-radius:6px;background:rgba(20,20,24,.85);color:#fff;font:600 13px system-ui;" +
+    "box-shadow:0 2px 6px rgba(0,0,0,.3)";
+  document.body.append(cap);
+  await sleep(ms);
+  cap.remove();
 }
 
 /** Drag a rectangle with the area tool over the paragraphs from `fromText` to `toText`. */
@@ -280,6 +307,24 @@ async function drawSketch(viewer: Viewer, pointer: Pointer): Promise<void> {
     arrow.push([from[0] + ((to[0] - from[0]) * i) / 14, from[1] + ((to[1] - from[1]) * i) / 14]);
   }
   await drawStroke(pv, pointer, arrow, 30);
+  await sleep(300);
+
+  // a typed note next to the arrow
+  await clickButton(pointer, '#shapes [data-shape="text"]');
+  setShape("text");
+  const at: [number, number] = [(from[0] + to[0]) / 2 + 16, (from[1] + to[1]) / 2];
+  await pointer.move(at[0], at[1], 600);
+  await pointer.click();
+  const page2 = pv.el.getBoundingClientRect();
+  placeNote(pv, [(at[0] - page2.left) / page2.width, (at[1] - page2.top) / page2.height]);
+  const note = await until(() => document.querySelector<HTMLInputElement>("input.sketch-note"));
+  for (const ch of "first") {
+    note.value += ch;
+    note.dispatchEvent(new Event("input"));
+    await sleep(70);
+  }
+  await sleep(250);
+  commitNote();
   await sleep(400);
   commentSketch();
 }
@@ -291,34 +336,116 @@ async function animate(viewer: Viewer, doc: DocState): Promise<void> {
   });
   const pointer = new Pointer();
   const resolved = (n: number) => () => doc.comments.filter((c) => c.status === "resolved").length >= n;
+  const rest = () => pointer.move(window.innerWidth - 230, window.innerHeight - 190, 900);
 
   // the scripted agent connects and starts listening
   await until(() => doc.listeners > 0);
   await sleep(1200);
 
+  // 1 · comment on text
   await dragSelect(viewer, pointer, "roughly 30 %");
   await sleep(350);
   await type("Add the source for this number", 55);
-  await pointer.move(window.innerWidth - 230, window.innerHeight - 190, 900);
+  await rest();
   await until(resolved(1), 60_000);
-  await sleep(1800);
+  await sleep(1500);
 
+  // 2 · replace: ⇥ switches the composer to Replace
+  await dragSelect(viewer, pointer, "twelve virtual machines");
+  await sleep(400);
+  await keycap(pointer, "⇥", 500);
+  composerKey("Tab");
+  await sleep(500);
+  await type("14 virtual machines", 60);
+  await rest();
+  await until(resolved(2), 60_000);
+  await sleep(1300);
+
+  // 3 · delete: select and press ⌫
+  await dragSelect(viewer, pointer, "regularly", false);
+  await sleep(300);
+  await keycap(pointer, "⌫", 600);
+  selectionAction("delete");
+  await rest();
+  await until(resolved(3), 60_000);
+  await sleep(1300);
+
+  // 4 · area screenshot
   await dragArea(viewer, pointer, "Costs and benefits", "larger benefit");
   await sleep(500);
   await type("Turn these cost figures into a small table", 50);
   setTool("text");
-  await pointer.move(window.innerWidth - 230, window.innerHeight - 190, 900);
-  await until(resolved(2), 60_000);
-  await sleep(1800);
+  await rest();
+  await until(resolved(4), 60_000);
+  await sleep(1500);
 
+  // 5 · sketch: loop, arrow and a typed note
   await drawSketch(viewer, pointer);
   await sleep(400);
   await type("Move this section before the costs", 50);
   setShape("pen");
   setTool("text");
-  await pointer.move(window.innerWidth - 230, window.innerHeight - 190, 900);
-  await until(resolved(3), 60_000);
-  await sleep(2500);
+  await rest();
+  await until(resolved(5), 60_000);
+  await sleep(1500);
+
+  // 6 · find in the document and jump via the outline
+  openSearch();
+  const search = byId<HTMLInputElement>("search-input");
+  const sr = search.getBoundingClientRect();
+  await pointer.move(sr.left + 40, sr.top + sr.height / 2, 700);
+  for (const ch of "phase") {
+    search.value += ch;
+    search.dispatchEvent(new Event("input"));
+    await sleep(90);
+  }
+  await sleep(900);
+  for (let i = 0; i < 2; i++) {
+    step(1);
+    await sleep(700);
+  }
+  closeSearch();
+  update((s) => {
+    s.navOpen = true;
+    s.navTab = "outline";
+  });
+  await sleep(1400);
+  const summary = await until(
+    () =>
+      [...document.querySelectorAll<HTMLElement>("#navigator .outline-row")].find((el) =>
+        el.textContent?.includes("Summary"),
+      ),
+    5000,
+  ).catch(() => null);
+  if (summary) {
+    const r = summary.getBoundingClientRect();
+    await pointer.move(r.left + 30, r.top + r.height / 2, 700);
+    await pointer.click();
+    summary.click();
+  }
+  await sleep(1200);
+  update((s) => (s.navOpen = false));
+  await sleep(500);
+
+  // 7 · a message to the agent, not tied to a spot (the title is the target: keep it in view)
+  viewer.scrollEl.scrollTo({ top: 0, behavior: "smooth" });
+  await sleep(700);
+  const box = byId<HTMLTextAreaElement>("general-input");
+  const br = box.getBoundingClientRect();
+  await pointer.move(br.left + 60, br.top + br.height / 2, 800);
+  await pointer.click();
+  box.focus();
+  for (const ch of "Shorten the title to “Cloud Migration”") {
+    box.value += ch;
+    box.dispatchEvent(new Event("input"));
+    await sleep(45);
+  }
+  await sleep(300);
+  await clickButton(pointer, "#btn-send");
+  byId("btn-send").click();
+  await rest();
+  await until(resolved(6), 60_000);
+  await sleep(4000); // the agent opens a second document in its own tab
 }
 
 export async function runDemo(viewer: Viewer, animated: boolean): Promise<void> {
