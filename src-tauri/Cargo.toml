@@ -1,6 +1,6 @@
 [package]
 name = "pdfnotator"
-version = "0.8.0"
+version = "0.8.1"
 description = "PDF viewer for pair-designing Typst documents with AI coding agents via MCP"
 authors = ["Thomas Oberbichler"]
 license = "ISC"
