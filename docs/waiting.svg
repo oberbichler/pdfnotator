@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 420" width="860" height="420" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" role="img" aria-labelledby="t d">
+  <title id="t">How an agent waits for your comments</title>
+  <desc id="d">Left: without tasks the agent calls wait_for_feedback, gets "keep waiting" after 50 seconds and calls again until a comment arrives. Right: with MCP Tasks the call returns a task id at once; the agent polls tasks/get every second and gets the comments as soon as you send them.</desc>
+  <style>
+    .bg { fill: #ffffff; }
+    .panel { fill: #f6f8fa; stroke: #d0d7de; }
+    .h { fill: #1f2328; font-size: 15px; font-weight: 600; }
+    .sub { fill: #59636e; font-size: 12px; }
+    .lane { fill: #1f2328; font-size: 12.5px; font-weight: 600; }
+    .life { stroke: #d0d7de; stroke-width: 1.5; stroke-dasharray: 4 4; }
+    .msg { fill: #1f2328; font-size: 12px; }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11.5px; }
+    .call { stroke: #0969da; stroke-width: 1.6; fill: none; }
+    .back { stroke: #59636e; stroke-width: 1.4; fill: none; stroke-dasharray: 5 3; }
+    .user { stroke: #bf3989; stroke-width: 1.6; fill: none; }
+    .ok { stroke: #1a7f37; stroke-width: 1.8; fill: none; }
+    .wait { fill: #ddf4ff; stroke: #54aeff; }
+    .note { fill: #59636e; font-size: 11px; font-style: italic; }
+    .ah-call { fill: #0969da; } .ah-back { fill: #59636e; } .ah-user { fill: #bf3989; } .ah-ok { fill: #1a7f37; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0d1117; }
+      .panel { fill: #161b22; stroke: #30363d; }
+      .h, .lane, .msg { fill: #e6edf3; }
+      .sub, .note { fill: #9198a1; }
+      .life { stroke: #30363d; }
+      .call { stroke: #4493f8; } .ah-call { fill: #4493f8; }
+      .back { stroke: #9198a1; } .ah-back { fill: #9198a1; }
+      .user { stroke: #db61a2; } .ah-user { fill: #db61a2; }
+      .ok { stroke: #3fb950; } .ah-ok { fill: #3fb950; }
+      .wait { fill: #0c2d6b; stroke: #1f6feb; }
+    }
+  </style>
+  <defs>
+    <marker id="a-call" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-call" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="a-back" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-back" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="a-user" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-user" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-ok" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+
+  <rect class="bg" width="860" height="420"/>
+
+  <!-- left panel: blocking -->
+  <rect class="panel" x="10" y="10" width="415" height="400" rx="10"/>
+  <text class="h" x="30" y="38">Without tasks</text>
+  <text class="sub" x="30" y="56">clients without tasks – each call blocks up to 50 s</text>
+  <text class="lane" x="70" y="88" text-anchor="middle">Agent</text>
+  <text class="lane" x="235" y="88" text-anchor="middle">pdfnotator</text>
+  <text class="lane" x="375" y="88" text-anchor="middle">You</text>
+  <line class="life" x1="70" y1="98" x2="70" y2="340"/>
+  <line class="life" x1="235" y1="98" x2="235" y2="340"/>
+  <line class="life" x1="375" y1="98" x2="375" y2="340"/>
+
+  <line class="call" x1="72" y1="122" x2="229" y2="122" marker-end="url(#a-call)"/>
+  <text class="msg code" x="150" y="116" text-anchor="middle">wait_for_feedback</text>
+  <rect class="wait" x="229" y="128" width="12" height="62" rx="3"/>
+  <text class="note" x="250" y="163">waits 50 s</text>
+  <line class="back" x1="229" y1="196" x2="76" y2="196" marker-end="url(#a-back)"/>
+  <text class="msg" x="150" y="190" text-anchor="middle">“keep waiting”</text>
+
+  <line class="call" x1="72" y1="232" x2="229" y2="232" marker-end="url(#a-call)"/>
+  <text class="msg code" x="150" y="226" text-anchor="middle">wait_for_feedback</text>
+  <rect class="wait" x="229" y="238" width="12" height="70" rx="3"/>
+  <line class="user" x1="373" y1="282" x2="247" y2="282" marker-end="url(#a-user)"/>
+  <text class="msg" x="310" y="276" text-anchor="middle">comment</text>
+  <line class="ok" x1="229" y1="314" x2="76" y2="314" marker-end="url(#a-ok)"/>
+  <text class="msg" x="150" y="308" text-anchor="middle">your comments</text>
+  <text class="note" x="30" y="352">The agent repeats the call until you comment.</text>
+  <text class="note" x="30" y="370">If the client aborts a call (often after ~60 s),</text>
+  <text class="note" x="30" y="388">the loop can break.</text>
+
+  <!-- right panel: tasks -->
+  <rect class="panel" x="435" y="10" width="415" height="400" rx="10"/>
+  <text class="h" x="455" y="38">With MCP Tasks</text>
+  <text class="sub" x="455" y="56">clients that declare the Tasks extension</text>
+  <text class="lane" x="495" y="88" text-anchor="middle">Agent</text>
+  <text class="lane" x="660" y="88" text-anchor="middle">pdfnotator</text>
+  <text class="lane" x="800" y="88" text-anchor="middle">You</text>
+  <line class="life" x1="495" y1="98" x2="495" y2="340"/>
+  <line class="life" x1="660" y1="98" x2="660" y2="340"/>
+  <line class="life" x1="800" y1="98" x2="800" y2="340"/>
+
+  <line class="call" x1="497" y1="122" x2="654" y2="122" marker-end="url(#a-call)"/>
+  <text class="msg code" x="575" y="116" text-anchor="middle">wait_for_feedback</text>
+  <line class="back" x1="654" y1="146" x2="501" y2="146" marker-end="url(#a-back)"/>
+  <text class="msg" x="575" y="140" text-anchor="middle">task id, at once</text>
+  <rect class="wait" x="654" y="152" width="12" height="160" rx="3"/>
+  <text class="note" x="676" y="236">waits up to</text>
+  <text class="note" x="676" y="250">30 min</text>
+
+  <line class="call" x1="497" y1="182" x2="652" y2="182" marker-end="url(#a-call)"/>
+  <text class="msg code" x="575" y="176" text-anchor="middle">tasks/get</text>
+  <line class="back" x1="652" y1="198" x2="501" y2="198" marker-end="url(#a-back)"/>
+  <text class="msg" x="575" y="214" text-anchor="middle">working</text>
+  <text class="note" x="575" y="240" text-anchor="middle">… every second …</text>
+
+  <line class="user" x1="798" y1="276" x2="672" y2="276" marker-end="url(#a-user)"/>
+  <text class="msg" x="735" y="270" text-anchor="middle">comment</text>
+  <line class="call" x1="497" y1="300" x2="652" y2="300" marker-end="url(#a-call)"/>
+  <text class="msg code" x="575" y="294" text-anchor="middle">tasks/get</text>
+  <line class="ok" x1="652" y1="318" x2="501" y2="318" marker-end="url(#a-ok)"/>
+  <text class="msg" x="575" y="334" text-anchor="middle">completed + your comments</text>
+  <text class="note" x="455" y="370">Nothing stays open, so no client timeout</text>
+  <text class="note" x="455" y="388">can cut the wait short.</text>
+</svg>
