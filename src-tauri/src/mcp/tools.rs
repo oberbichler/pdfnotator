@@ -112,6 +112,22 @@ pub fn definitions() -> Value {
     ])
 }
 
+/// `tools/list` for this request. Clients that declare the Tasks extension
+/// always get `wait_for_feedback` as a task, so it is marked
+/// `taskSupport: "required"` for them: Copilot CLI only accepts a task
+/// result for tools marked that way. Everyone else sees the plain tool.
+pub fn definitions_for(params: &Value) -> Value {
+    let mut tools = definitions();
+    if super::tasks::declared(params)
+        && let Some(wait) = tools
+            .as_array_mut()
+            .and_then(|t| t.iter_mut().find(|t| t["name"] == "wait_for_feedback"))
+    {
+        wait["execution"] = json!({ "taskSupport": "required" });
+    }
+    tools
+}
+
 /// Whether this `tools/call` runs as an MCP task: only the long
 /// `wait_for_feedback`, and only for clients that declared the extension.
 pub fn runs_as_task(params: &Value) -> bool {

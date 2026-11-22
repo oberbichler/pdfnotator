@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+
+- Copilot CLI with experimental features (1.0.114 and later) failed every `wait_for_feedback` call with
+  "expected CallToolResult … got CreateTaskResult". Clients that declare MCP Tasks now see `wait_for_feedback`
+  marked `execution.taskSupport: "required"` in `tools/list`, so Copilot CLI runs the wait as a background task
+  and polls it. Other clients see the tool unchanged.
+
 ## [0.8.1] - 2026-11-22
 
 ### Changed
