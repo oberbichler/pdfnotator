@@ -11,6 +11,7 @@ WORK=$(mktemp -d)
 trap 'kill -TERM ${APP:-} ${AGENT:-} 2>/dev/null || true; rm -rf "$WORK"' EXIT
 
 cp examples/proposal.typ "$WORK/proposal.typ"       # the agent edits a copy
+cp examples/report.typ "$WORK/report.typ"           # opened as a second tab at the end
 PDFNOTATOR_PORT=$PORT PDFNOTATOR_DEMO=animate "$BIN" "$WORK/proposal.typ" >/dev/null 2>&1 &
 APP=$!
 until curl -sf "http://127.0.0.1:$PORT/api/status" | grep -q proposal; do sleep 0.2; done
@@ -20,7 +21,7 @@ let l = CGWindowListCopyWindowInfo(.optionAll, kCGNullWindowID) as! [[String: An
 for w in l where (w[\"kCGWindowOwnerPID\"] as? Int) == $APP && (w[\"kCGWindowLayer\"] as? Int) == 0
   && ((w[\"kCGWindowBounds\"] as? [String: Double])?[\"Height\"] ?? 0) > 500 { print(w[\"kCGWindowNumber\"]!); break }")
 
-python3 scripts/demo-agent.py "$PORT" "$WORK/proposal.typ" "$WORK/done" 2>/dev/null &
+python3 scripts/demo-agent.py "$PORT" "$WORK/proposal.typ" "$WORK/done" "$WORK/report.typ" 2>/dev/null &
 AGENT=$!
 
 # capture the window as fast as possible, remembering when each frame was taken
