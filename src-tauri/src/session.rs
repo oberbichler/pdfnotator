@@ -38,6 +38,8 @@ pub struct Session {
     server_error: Mutex<Option<String>>,
     /// Running tool calls by `(client, request id)`, so `notifications/cancelled` can stop them.
     inflight: Mutex<HashMap<String, Arc<Notify>>>,
+    /// MCP tasks (long waits the client polls).
+    pub tasks: crate::mcp::tasks::Tasks,
     this: Weak<Session>,
 }
 
@@ -77,6 +79,7 @@ impl Session {
             port,
             server_error: Mutex::new(None),
             inflight: Mutex::new(HashMap::new()),
+            tasks: crate::mcp::tasks::Tasks::default(),
             this: this.clone(),
         })
     }

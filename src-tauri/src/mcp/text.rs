@@ -18,6 +18,14 @@ When they say \"open in pdfnotator\" (\"öffne in pdfnotator\"), call `open_pdf`
 and the handled ids → `wait_for_feedback` again, until the user says they are done. Feedback is compact by default; \
 call `get_comments` only when you need full quotes, surrounding page text or full-resolution screenshots.";
 
+/// Result of a wait that ended because pdfnotator quit.
+pub fn quit_note(path: &str) -> String {
+    format!(
+        "pdfnotator was quit (e.g. for an update). Call wait_for_feedback again with path \"{path}\" — that \
+         restarts pdfnotator and reopens the document. Stop only if the user said they are done."
+    )
+}
+
 const REVIEW_PROMPT: &str = "\
 Open {FILE} in pdfnotator (call `open_pdf` with the absolute path of the .typ source if there is one) and \
 pair-design it with me: loop `wait_for_feedback` → edit the source → `reply` (summary + resolved_ids) → \
