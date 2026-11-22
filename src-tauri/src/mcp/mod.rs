@@ -176,7 +176,7 @@ pub fn handle_static(method: &str, params: &Value) -> Option<RpcResult> {
             "_meta": { "io.modelcontextprotocol/serverInfo": server_info() },
         })),
         "ping" => Ok(json!({})),
-        "tools/list" => Ok(json!({ "tools": tools::definitions() })),
+        "tools/list" => Ok(json!({ "tools": tools::definitions_for(params) })),
         "prompts/list" => Ok(json!({ "prompts": [text::review_prompt_definition()] })),
         "prompts/get" => text::review_prompt(params),
         "resources/list" => Ok(json!({ "resources": [] })),
@@ -463,6 +463,24 @@ mod tests {
             client_name(&json!({ "_meta": meta(false) })).as_deref(),
             Some("claude-code")
         );
+    }
+
+    #[test]
+    fn marks_the_wait_as_task_only_for_clients_that_declare_tasks() {
+        let support = |tasks: bool| {
+            let tools = call("tools/list", json!({ "_meta": meta(tasks) }));
+            let tools = tools["tools"].as_array().unwrap().clone();
+            let marked: Vec<_> = tools.iter().filter(|t| t.get("execution").is_some()).collect();
+            assert!(marked.len() <= 1);
+            marked
+                .first()
+                .map(|t| (t["name"].clone(), t["execution"]["taskSupport"].clone()))
+        };
+        assert_eq!(
+            support(true),
+            Some((json!("wait_for_feedback"), json!("required")))
+        );
+        assert_eq!(support(false), None);
     }
 
     #[test]
