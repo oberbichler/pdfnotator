@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+
+- macOS 13 (Ventura) or later is required. The bundled pdf.js 6 needs Safari 18's WebKit, which macOS 11 and 12 do
+  not get.
+- Dependencies: pdf.js 6.5, Tauri 2.12.7, GitHub Actions setup-node/checkout 7, tauri-action 1.
+
 ## [0.8.0] - 2026-11-22
 
 ### Added
