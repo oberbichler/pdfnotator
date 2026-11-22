@@ -81,12 +81,49 @@ fn origin_ok(headers: &HeaderMap) -> bool {
 pub const SESSION_HEADER: &str = "mcp-session-id";
 /// Agent name sent by the stdio bridge (it answers `initialize` itself).
 pub const AGENT_HEADER: &str = "x-pdfnotator-agent";
+/// Must match the version in the body of 2026-07-28+ requests.
+const VERSION_HEADER: &str = "mcp-protocol-version";
+
+/// Reject a 2026-07-28+ request whose `MCP-Protocol-Version` header differs
+/// from the version in its `_meta`.
+fn header_mismatch(headers: &HeaderMap, msg: &Value) -> Option<Response> {
+    let body = mcp::request_version(msg.get("params")?)?;
+    let header = headers.get(VERSION_HEADER).and_then(|v| v.to_str().ok())?;
+    (header != body).then(|| {
+        let err = mcp::error_response(
+            msg.get("id").cloned().unwrap_or(Value::Null),
+            mcp::code::HEADER_MISMATCH,
+            "MCP-Protocol-Version header does not match the request",
+            json!({ "header": header, "body": body }),
+        );
+        (StatusCode::BAD_REQUEST, Json(err)).into_response()
+    })
+}
+
+/// Protocol errors are answered with HTTP 400 (2026-07-28).
+fn http_status(reply: &Value) -> StatusCode {
+    match reply.pointer("/error/code").and_then(Value::as_i64) {
+        Some(mcp::code::UNSUPPORTED_PROTOCOL_VERSION | mcp::code::HEADER_MISMATCH) => StatusCode::BAD_REQUEST,
+        _ => StatusCode::OK,
+    }
+}
 
 async fn mcp_post(State(session): State<AppState>, headers: HeaderMap, Json(msg): Json<Value>) -> Response {
+    if let Some(resp) = header_mismatch(&headers, &msg) {
+        return resp;
+    }
+    // 2026-07-28 clients have no session: they name themselves in every request
+    let meta_name = msg.get("params").and_then(mcp::client_name);
     let client = headers
         .get(SESSION_HEADER)
         .and_then(|v| v.to_str().ok())
-        .map(str::to_owned);
+        .map(str::to_owned)
+        .or_else(|| {
+            let name = meta_name.as_deref()?;
+            let id = format!("client:{name}");
+            session.set_agent_name(&id, name);
+            Some(id)
+        });
     let client = client.as_deref();
     if let (Some(client), Some(name)) = (client, headers.get(AGENT_HEADER).and_then(|v| v.to_str().ok())) {
         session.set_agent_name(client, name);
@@ -106,7 +143,8 @@ async fn mcp_post(State(session): State<AppState>, headers: HeaderMap, Json(msg)
     match mcp::handle(&session, client, &msg).await {
         None => StatusCode::ACCEPTED.into_response(),
         Some(reply) => {
-            let mut resp = Json(reply).into_response();
+            let status = http_status(&reply);
+            let mut resp = (status, Json(reply)).into_response();
             let id = uuid::Uuid::new_v4().to_string();
             if is_init && let Ok(value) = HeaderValue::from_str(&id) {
                 // direct HTTP clients introduce themselves in `initialize`

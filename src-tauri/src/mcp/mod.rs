@@ -4,7 +4,8 @@
 //! ([`crate::bridge`]). Requests that do not need a running viewer are answered
 //! by [`handle_static`], so the bridge can reply without launching the app.
 
-mod text;
+pub mod tasks;
+pub mod text;
 mod tools;
 
 use std::sync::Arc;
@@ -14,15 +15,31 @@ use serde_json::{Value, json};
 use crate::session::Session;
 
 /// Protocol revisions this server speaks, newest first.
-pub const PROTOCOL_VERSIONS: &[&str] = &["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
+pub const PROTOCOL_VERSIONS: &[&str] = &[
+    STATELESS_VERSION,
+    "2025-11-25",
+    "2025-06-18",
+    "2025-03-26",
+    "2024-11-05",
+];
+/// Revisions negotiated with `initialize` (all before 2026-07-28).
+const INITIALIZE_VERSIONS: &[&str] = &["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
 /// Revision used when the client asks for one we don't know.
 const FALLBACK_VERSION: &str = "2025-06-18";
+/// From this revision on there is no `initialize`: every request names its
+/// version, client and capabilities in `_meta`, and results carry `resultType`.
+pub const STATELESS_VERSION: &str = "2026-07-28";
+const META_VERSION: &str = "io.modelcontextprotocol/protocolVersion";
+const META_CLIENT: &str = "io.modelcontextprotocol/clientInfo";
 
 /// JSON-RPC error codes.
 pub mod code {
     pub const PARSE_ERROR: i64 = -32700;
     pub const METHOD_NOT_FOUND: i64 = -32601;
     pub const INVALID_PARAMS: i64 = -32602;
+    pub const HEADER_MISMATCH: i64 = -32020;
+    pub const MISSING_REQUIRED_CLIENT_CAPABILITY: i64 = -32021;
+    pub const UNSUPPORTED_PROTOCOL_VERSION: i64 = -32022;
 }
 
 /// Result of a JSON-RPC method: a result value or `(code, message)`.
@@ -36,6 +53,16 @@ pub fn response(id: Value, result: RpcResult) -> Value {
             json!({ "jsonrpc": "2.0", "id": id, "error": { "code": code, "message": message } })
         }
     }
+}
+
+/// A JSON-RPC error response with `data`.
+pub fn error_response(id: Value, code: i64, message: &str, data: Value) -> Value {
+    json!({ "jsonrpc": "2.0", "id": id, "error": { "code": code, "message": message, "data": data } })
+}
+
+/// The protocol version a 2026-07-28+ request names in its `_meta`.
+pub fn request_version(params: &Value) -> Option<&str> {
+    params.get("_meta")?.get(META_VERSION)?.as_str()
 }
 
 /// A request as far as routing is concerned.
@@ -56,10 +83,13 @@ impl Request {
     }
 }
 
-/// The agent's display name from `initialize` params (`clientInfo.title`,
-/// else `clientInfo.name`), reduced to printable ASCII so it fits in a header.
+/// The agent's display name (`clientInfo.title`, else `clientInfo.name`) from
+/// `initialize` params or, since 2026-07-28, any request's `_meta`; reduced to
+/// printable ASCII so it fits in a header.
 pub fn client_name(params: &Value) -> Option<String> {
-    let info = params.get("clientInfo")?;
+    let info = params
+        .get("clientInfo")
+        .or_else(|| params.get("_meta")?.get(META_CLIENT))?;
     let raw = ["title", "name"]
         .iter()
         .filter_map(|k| info.get(*k).and_then(Value::as_str))
@@ -73,6 +103,50 @@ pub fn client_name(params: &Value) -> Option<String> {
     (!name.is_empty()).then(|| name.to_owned())
 }
 
+fn capabilities() -> Value {
+    json!({
+        "tools": { "listChanged": false },
+        "prompts": { "listChanged": false },
+        "extensions": { tasks::EXTENSION: {} },
+    })
+}
+
+fn server_info() -> Value {
+    json!({ "name": "pdfnotator", "title": "PDFnotator", "version": env!("CARGO_PKG_VERSION") })
+}
+
+/// `-32022` if the request names a protocol version we don't speak.
+fn version_error(req: &Request) -> Option<Value> {
+    let requested = request_version(&req.params)?;
+    if PROTOCOL_VERSIONS.contains(&requested) {
+        return None;
+    }
+    Some(error_response(
+        req.id.clone(),
+        code::UNSUPPORTED_PROTOCOL_VERSION,
+        "Unsupported protocol version",
+        json!({ "supported": PROTOCOL_VERSIONS, "requested": requested }),
+    ))
+}
+
+/// Build the response; 2026-07-28 results carry `resultType`.
+pub fn reply(req: &Request, result: RpcResult) -> Value {
+    let stateless = request_version(&req.params) == Some(STATELESS_VERSION);
+    let result = result.map(|mut v| {
+        if stateless && let Some(obj) = v.as_object_mut() {
+            obj.entry("resultType").or_insert_with(|| "complete".into());
+        }
+        v
+    });
+    response(req.id.clone(), result)
+}
+
+/// Answer a request that needs no viewer (or has an unsupported version).
+/// `None` = needs the viewer.
+pub fn answer_static(req: &Request) -> Option<Value> {
+    version_error(req).or_else(|| handle_static(&req.method, &req.params).map(|r| reply(req, r)))
+}
+
 /// Handle methods that don't need the viewer. `None` = not a static method.
 pub fn handle_static(method: &str, params: &Value) -> Option<RpcResult> {
     let result = match method {
@@ -81,18 +155,26 @@ pub fn handle_static(method: &str, params: &Value) -> Option<RpcResult> {
                 .get("protocolVersion")
                 .and_then(Value::as_str)
                 .unwrap_or_default();
-            let version = PROTOCOL_VERSIONS
+            let version = INITIALIZE_VERSIONS
                 .iter()
                 .find(|v| **v == requested)
                 .copied()
                 .unwrap_or(FALLBACK_VERSION);
             Ok(json!({
                 "protocolVersion": version,
-                "capabilities": { "tools": { "listChanged": false }, "prompts": { "listChanged": false } },
-                "serverInfo": { "name": "pdfnotator", "title": "PDFnotator", "version": env!("CARGO_PKG_VERSION") },
+                "capabilities": capabilities(),
+                "serverInfo": server_info(),
                 "instructions": text::INSTRUCTIONS,
             }))
         }
+        "server/discover" => Ok(json!({
+            "supportedVersions": PROTOCOL_VERSIONS,
+            "capabilities": capabilities(),
+            "instructions": text::INSTRUCTIONS,
+            "ttlMs": 3_600_000,
+            "cacheScope": "public",
+            "_meta": { "io.modelcontextprotocol/serverInfo": server_info() },
+        })),
         "ping" => Ok(json!({})),
         "tools/list" => Ok(json!({ "tools": tools::definitions() })),
         "prompts/list" => Ok(json!({ "prompts": [text::review_prompt_definition()] })),
@@ -115,18 +197,61 @@ pub async fn handle(session: &Arc<Session>, client: Option<&str>, msg: &Value) -
         return None;
     }
     let req = Request::parse(msg)?;
-    let result = match handle_static(&req.method, &req.params) {
-        Some(result) => result,
-        None if req.method == "tools/call" => {
+    if let Some(resp) = answer_static(&req) {
+        return Some(resp);
+    }
+    let result = match req.method.as_str() {
+        "tools/call" if tools::runs_as_task(&req.params) => Ok(start_task(session, client, &req.params)),
+        "tools/call" => {
             let call = session.begin_call(client, &req.id);
             Ok(tools::call(session, client, &req.params, &call.cancel).await)
         }
-        None => Err((
+        "tasks/get" | "tasks/update" | "tasks/cancel" => return Some(task_request(session, &req)),
+        _ => Err((
             code::METHOD_NOT_FOUND,
             format!("method not found: {}", req.method),
         )),
     };
-    Some(response(req.id, result))
+    Some(reply(&req, result))
+}
+
+/// Run a long tool call as a task and return its `CreateTaskResult`.
+fn start_task(session: &Arc<Session>, client: Option<&str>, params: &Value) -> Value {
+    let params = tools::task_params(params);
+    let (id, cancel, created) = session.tasks.create(tools::task_duration(&params));
+    let (session, client) = (session.clone(), client.map(str::to_owned));
+    tokio::spawn(async move {
+        let mut result = tools::call(&session, client.as_deref(), &params, &cancel).await;
+        result["resultType"] = "complete".into();
+        session.tasks.complete(&id, result);
+    });
+    created
+}
+
+/// `tasks/get`, `tasks/update` and `tasks/cancel`.
+fn task_request(session: &Session, req: &Request) -> Value {
+    if !tasks::declared(&req.params) {
+        return tasks::missing_capability(req.id.clone());
+    }
+    let id = tasks::task_id(&req.params).unwrap_or_default();
+    let known = match req.method.as_str() {
+        "tasks/get" => match session.tasks.get(id) {
+            Some(task) => return response(req.id.clone(), Ok(task)),
+            None => false,
+        },
+        "tasks/cancel" => session.tasks.cancel(id),
+        // wait_for_feedback never asks for input; nothing to update
+        _ => session.tasks.contains(id),
+    };
+    let result = if known {
+        Ok(json!({ "resultType": "complete" }))
+    } else {
+        Err((
+            code::INVALID_PARAMS,
+            format!("task {id:?} not found (unknown or expired)"),
+        ))
+    };
+    response(req.id.clone(), result)
 }
 
 #[cfg(test)]
@@ -303,6 +428,117 @@ mod tests {
         doc.submit(vec![crate::feedback::item("c1")]);
         let next = start_wait(&s, "agent", 2).await;
         assert!(text_of(&next.await.unwrap().unwrap()).contains("[c1]"));
+    }
+
+    fn meta(tasks: bool) -> Value {
+        let caps = if tasks {
+            json!({ "extensions": { tasks::EXTENSION: {} } })
+        } else {
+            json!({})
+        };
+        json!({
+            "io.modelcontextprotocol/protocolVersion": STATELESS_VERSION,
+            "io.modelcontextprotocol/clientInfo": { "name": "claude-code", "version": "1" },
+            tasks::META_CAPABILITIES: caps,
+        })
+    }
+
+    #[test]
+    fn discovery_advertises_tasks_and_versions() {
+        let req = Request::parse(&json!({ "jsonrpc": "2.0", "id": 1, "method": "server/discover",
+            "params": { "_meta": meta(false) } }))
+        .unwrap();
+        let r = answer_static(&req).unwrap();
+        assert_eq!(r["result"]["resultType"], "complete");
+        assert_eq!(r["result"]["supportedVersions"][0], STATELESS_VERSION);
+        assert!(r["result"]["capabilities"]["extensions"][tasks::EXTENSION].is_object());
+        // initialize-based clients never get the stateless revision
+        assert_eq!(
+            call("initialize", json!({ "protocolVersion": STATELESS_VERSION }))["protocolVersion"],
+            FALLBACK_VERSION
+        );
+        // older clients' results stay as they were
+        assert!(call("tools/list", json!({})).get("resultType").is_none());
+        assert_eq!(
+            client_name(&json!({ "_meta": meta(false) })).as_deref(),
+            Some("claude-code")
+        );
+    }
+
+    #[test]
+    fn rejects_unknown_protocol_versions() {
+        let req = Request::parse(&json!({ "jsonrpc": "2.0", "id": 1, "method": "tools/list",
+            "params": { "_meta": { "io.modelcontextprotocol/protocolVersion": "2099-01-01" } } }))
+        .unwrap();
+        let r = answer_static(&req).unwrap();
+        assert_eq!(r["error"]["code"], code::UNSUPPORTED_PROTOCOL_VERSION);
+        assert_eq!(r["error"]["data"]["requested"], "2099-01-01");
+    }
+
+    #[tokio::test]
+    async fn wait_runs_as_a_task_for_clients_that_declare_it() {
+        let s = Session::new(0);
+        let dir = tempfile::tempdir().unwrap();
+        let pdf = dir.path().join("a.pdf");
+        std::fs::write(&pdf, b"%PDF").unwrap();
+        s.open(pdf.to_str().unwrap(), None).unwrap();
+        let doc = s.documents()[0].clone();
+        let rpc = |method: &str, params: Value| {
+            let s = s.clone();
+            let msg = json!({ "jsonrpc": "2.0", "id": 1, "method": method, "params": params });
+            async move { handle(&s, Some("agent"), &msg).await.unwrap() }
+        };
+        let wait =
+            |tasks: bool| json!({ "name": "wait_for_feedback", "arguments": {}, "_meta": meta(tasks) });
+
+        let created = rpc("tools/call", wait(true)).await;
+        assert_eq!(created["result"]["resultType"], "task");
+        assert_eq!(created["result"]["status"], "working");
+        let id = created["result"]["taskId"].as_str().unwrap().to_owned();
+        let get = |tasks: bool| json!({ "taskId": id, "_meta": meta(tasks) });
+
+        assert_eq!(
+            rpc("tasks/get", get(false)).await["error"]["code"],
+            code::MISSING_REQUIRED_CLIENT_CAPABILITY
+        );
+        assert_eq!(
+            rpc("tasks/get", json!({ "taskId": "nope", "_meta": meta(true) })).await["error"]["code"],
+            code::INVALID_PARAMS
+        );
+        while doc.feedback.listeners() == 0 {
+            tokio::task::yield_now().await;
+        }
+        assert_eq!(rpc("tasks/get", get(true)).await["result"]["status"], "working");
+
+        doc.submit(vec![crate::feedback::item("c1")]);
+        let done = loop {
+            let r = rpc("tasks/get", get(true)).await;
+            if r["result"]["status"] != "working" {
+                break r;
+            }
+            tokio::task::yield_now().await;
+        };
+        assert_eq!(done["result"]["status"], "completed");
+        assert_eq!(done["result"]["result"]["resultType"], "complete");
+        assert!(done["result"]["result"]["content"].to_string().contains("[c1]"));
+
+        // cancelling releases the user's comments for the next wait
+        let id = rpc("tools/call", wait(true)).await["result"]["taskId"]
+            .as_str()
+            .unwrap()
+            .to_owned();
+        while doc.feedback.listeners() == 0 {
+            tokio::task::yield_now().await;
+        }
+        let cancel = json!({ "taskId": id, "_meta": meta(true) });
+        assert_eq!(
+            rpc("tasks/cancel", cancel.clone()).await["result"]["resultType"],
+            "complete"
+        );
+        while doc.feedback.listeners() > 0 {
+            tokio::task::yield_now().await;
+        }
+        assert_eq!(rpc("tasks/get", cancel).await["result"]["status"], "cancelled");
     }
 
     /// Regression: a stale wait that was never cancelled must not take the comments.

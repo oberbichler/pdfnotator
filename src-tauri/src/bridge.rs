@@ -1,9 +1,11 @@
 //! `pdfnotator --mcp`: stdio MCP server for agents (VS Code Copilot, Copilot CLI,
 //! Claude Code, …).
 //!
-//! Static requests (`initialize`, `tools/list`, …) are answered locally, so the
-//! agent can connect without the viewer running. Only tool calls are forwarded
-//! to the viewer's HTTP endpoint; the viewer is launched for the first one.
+//! Static requests (`initialize`, `server/discover`, `tools/list`, …) are
+//! answered locally, so the agent can connect without the viewer running. Only
+//! tool calls are forwarded to the viewer's HTTP endpoint; the viewer is
+//! launched for the first one. MCP task requests (`tasks/*`) go to a running
+//! viewer only: if it was quit, the bridge answers for the tasks it lost.
 
 use std::io::{BufRead, Write};
 use std::net::{SocketAddr, TcpStream};
@@ -34,6 +36,11 @@ pub fn run(port: u16) {
         match Bridge::route(&line) {
             Route::Done(Some(resp)) => write(&resp),
             Route::Done(None) => {}
+            Route::Task(req) => {
+                let bridge = bridge.clone();
+                let write = write.clone();
+                std::thread::spawn(move || write(&bridge.task_request(&line, &req)));
+            }
             Route::Forward(req) => {
                 // tool calls may block for minutes (wait_for_feedback) → own thread
                 let bridge = bridge.clone();
@@ -45,6 +52,7 @@ pub fn run(port: u16) {
                         std::thread::spawn(move || keep_alive(&token, &done, PROGRESS_INTERVAL, write));
                     }
                     let resp = bridge.forward(&line, req.id.clone());
+                    bridge.track_task(&req, &resp);
                     done.store(true, std::sync::atomic::Ordering::SeqCst);
                     // the client must not get a response for a call it cancelled
                     if !bridge.take_cancelled(&req.id) {
@@ -93,6 +101,8 @@ pub enum Route {
     Done(Option<Value>),
     /// Needs the viewer.
     Forward(Request),
+    /// `tasks/get` / `tasks/update` / `tasks/cancel`: needs a running viewer.
+    Task(Request),
     /// `notifications/cancelled` for this request id: stop it in the viewer too.
     Cancel(Value),
 }
@@ -108,6 +118,9 @@ pub struct Bridge {
     cancelled: Mutex<std::collections::HashSet<String>>,
     /// The agent's name from `initialize` (`clientInfo`), passed on so the viewer can show it.
     agent: Mutex<Option<String>>,
+    /// MCP tasks the viewer created for this client: task id → (document path,
+    /// `createdAt`), to answer for them if the viewer quits.
+    tasks: Mutex<std::collections::HashMap<String, (String, String)>>,
 }
 
 impl Bridge {
@@ -125,16 +138,17 @@ impl Bridge {
             client_id: uuid::Uuid::new_v4().to_string(),
             cancelled: Mutex::default(),
             agent: Mutex::default(),
+            tasks: Mutex::default(),
         }
     }
 
-    /// Remember the agent's name when the client introduces itself.
+    /// Remember the agent's name when the client introduces itself (in
+    /// `initialize`, or since 2026-07-28 in every request's `_meta`).
     fn note_client(&self, line: &str) {
-        if !line.contains("\"initialize\"") {
+        if !line.contains("clientInfo") {
             return;
         }
         if let Ok(msg) = serde_json::from_str::<Value>(line)
-            && msg.get("method").and_then(Value::as_str) == Some("initialize")
             && let Some(name) = mcp::client_name(msg.get("params").unwrap_or(&Value::Null))
         {
             *self.agent.lock().unwrap() = Some(name);
@@ -159,12 +173,15 @@ impl Bridge {
         let Some(req) = Request::parse(&msg) else {
             return Route::Done(None);
         };
-        match mcp::handle_static(&req.method, &req.params) {
-            Some(result) => Route::Done(Some(mcp::response(req.id, result))),
+        if let Some(resp) = mcp::answer_static(&req) {
+            return Route::Done(Some(resp));
+        }
+        match req.method.as_str() {
             // only tool calls need the viewer; anything else must not launch it
             // (clients send e.g. `logging/setLevel` when a session starts)
-            None if req.method == "tools/call" => Route::Forward(req),
-            None => Route::Done(Some(mcp::response(
+            "tools/call" => Route::Forward(req),
+            "tasks/get" | "tasks/update" | "tasks/cancel" => Route::Task(req),
+            _ => Route::Done(Some(mcp::response(
                 req.id,
                 Err((
                     mcp::code::METHOD_NOT_FOUND,
@@ -172,6 +189,87 @@ impl Bridge {
                 )),
             ))),
         }
+    }
+
+    /// Remember a task the viewer created for a forwarded tool call.
+    fn track_task(&self, req: &Request, resp: &Value) {
+        if resp.pointer("/result/resultType").and_then(Value::as_str) != Some("task") {
+            return;
+        }
+        let field = |p: &str| {
+            resp.pointer(p)
+                .and_then(Value::as_str)
+                .unwrap_or_default()
+                .to_owned()
+        };
+        let path = req
+            .params
+            .pointer("/arguments/path")
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_owned();
+        self.tasks
+            .lock()
+            .unwrap()
+            .insert(field("/result/taskId"), (path, field("/result/createdAt")));
+    }
+
+    /// Pass a `tasks/*` request to a running viewer. Never launches it: a
+    /// freshly started viewer would not know the task anyway.
+    pub fn task_request(&self, line: &str, req: &Request) -> Value {
+        if !mcp::tasks::declared(&req.params) {
+            return mcp::tasks::missing_capability(req.id.clone());
+        }
+        let id = mcp::tasks::task_id(&req.params).unwrap_or_default();
+        if self.alive()
+            && let Ok(resp) = self.post(line)
+            && resp.pointer("/error/code").and_then(Value::as_i64) != Some(mcp::code::INVALID_PARAMS)
+        {
+            let finished = req.method == "tasks/cancel"
+                || resp
+                    .pointer("/result/status")
+                    .and_then(Value::as_str)
+                    .is_some_and(|s| s != "working" && s != "input_required");
+            if finished {
+                self.tasks.lock().unwrap().remove(id);
+            }
+            return resp;
+        }
+        self.lost_task(req, id)
+    }
+
+    /// Answer for a task whose viewer is gone: the wait ended like any wait
+    /// interrupted by quitting, so the agent calls `wait_for_feedback` again.
+    fn lost_task(&self, req: &Request, id: &str) -> Value {
+        let Some((path, created)) = self.tasks.lock().unwrap().remove(id) else {
+            return mcp::response(
+                req.id.clone(),
+                Err((
+                    mcp::code::INVALID_PARAMS,
+                    format!("task {id:?} not found (unknown or expired)"),
+                )),
+            );
+        };
+        if req.method != "tasks/get" {
+            return mcp::response(req.id.clone(), Ok(json!({ "resultType": "complete" })));
+        }
+        let now = mcp::tasks::rfc3339(std::time::SystemTime::now());
+        mcp::response(
+            req.id.clone(),
+            Ok(json!({
+                "resultType": "complete",
+                "taskId": id,
+                "status": "completed",
+                "createdAt": if created.is_empty() { now.clone() } else { created },
+                "lastUpdatedAt": now,
+                "ttlMs": 0,
+                "result": {
+                    "resultType": "complete",
+                    "content": [{ "type": "text", "text": mcp::text::quit_note(&path) }],
+                    "isError": false
+                }
+            })),
+        )
     }
 
     fn mark_cancelled(&self, id: &Value) {
@@ -346,6 +444,102 @@ mod tests {
             ),
             Route::Forward(_)
         ));
+    }
+
+    const TASKS_META: &str = r#""_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{"extensions":{"io.modelcontextprotocol/tasks":{}}}}"#;
+
+    #[test]
+    fn answers_discovery_locally_and_routes_tasks_to_the_viewer() {
+        let Route::Done(Some(r)) = Bridge::route(&format!(
+            r#"{{"jsonrpc":"2.0","id":1,"method":"server/discover","params":{{{TASKS_META}}}}}"#
+        )) else {
+            panic!("discovery must not launch the viewer")
+        };
+        assert_eq!(r["result"]["resultType"], "complete");
+        assert!(r["result"]["capabilities"]["extensions"]["io.modelcontextprotocol/tasks"].is_object());
+        let get = format!(
+            r#"{{"jsonrpc":"2.0","id":2,"method":"tasks/get","params":{{"taskId":"x",{TASKS_META}}}}}"#
+        );
+        assert!(matches!(Bridge::route(&get), Route::Task(_)));
+    }
+
+    /// End to end: `wait_for_feedback` as a task, polled through the bridge; when
+    /// the viewer is gone the bridge tells the agent to wait again.
+    #[test]
+    fn task_wait_is_polled_and_survives_the_viewer() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let listener = rt.block_on(tokio::net::TcpListener::bind("127.0.0.1:0")).unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let session = Session::new(port);
+        let server = rt.spawn({
+            let session = session.clone();
+            async move { axum::serve(listener, crate::http::router(session)).await }
+        });
+        let dir = tempfile::tempdir().unwrap();
+        let pdf = dir.path().join("a.pdf");
+        std::fs::write(&pdf, b"%PDF").unwrap();
+        let path = pdf.to_str().unwrap().to_owned();
+        session.open(&path, None).unwrap();
+        let doc = session.documents()[0].clone();
+        let bridge = Bridge::new(port);
+
+        let call = |id: i64| {
+            let line = format!(
+                r#"{{"jsonrpc":"2.0","id":{id},"method":"tools/call","params":{{"name":"wait_for_feedback","arguments":{{"path":{path:?}}},{TASKS_META}}}}}"#
+            );
+            let Route::Forward(req) = Bridge::route(&line) else {
+                panic!()
+            };
+            let resp = bridge.forward(&line, req.id.clone());
+            bridge.track_task(&req, &resp);
+            resp
+        };
+        let task = |method: &str, id: &str| {
+            let line = format!(
+                r#"{{"jsonrpc":"2.0","id":9,"method":"{method}","params":{{"taskId":"{id}",{TASKS_META}}}}}"#
+            );
+            let Route::Task(req) = Bridge::route(&line) else {
+                panic!()
+            };
+            bridge.task_request(&line, &req)
+        };
+
+        let created = call(1);
+        assert_eq!(created["result"]["resultType"], "task", "{created}");
+        let id = created["result"]["taskId"].as_str().unwrap().to_owned();
+        assert_eq!(task("tasks/get", &id)["result"]["status"], "working");
+
+        doc.submit(vec![crate::feedback::item("c1")]);
+        let deadline = Instant::now() + Duration::from_secs(5);
+        let done = loop {
+            let r = task("tasks/get", &id);
+            if r["result"]["status"] != "working" || Instant::now() > deadline {
+                break r;
+            }
+            std::thread::sleep(Duration::from_millis(20));
+        };
+        assert_eq!(done["result"]["status"], "completed", "{done}");
+        let text = done["result"]["result"]["content"].to_string();
+        assert!(text.contains("[c1]"), "{text}");
+
+        // a second wait, then the viewer quits for good
+        let id = call(2)["result"]["taskId"].as_str().unwrap().to_owned();
+        session.shutdown();
+        server.abort();
+        rt.shutdown_background();
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while bridge.alive() && Instant::now() < deadline {
+            std::thread::sleep(Duration::from_millis(20));
+        }
+        let lost = task("tasks/get", &id);
+        assert_eq!(lost["result"]["status"], "completed", "{lost}");
+        let text = lost["result"]["result"]["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains("was quit") && text.contains(&path), "{text}");
+        assert_eq!(
+            task("tasks/get", &id)["error"]["code"],
+            mcp::code::INVALID_PARAMS,
+            "answered once"
+        );
     }
 
     #[test]

@@ -6,6 +6,16 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- MCP Tasks (`io.modelcontextprotocol/tasks`, revision 2026-07-28): clients that declare the extension get
+  `wait_for_feedback` as a task they poll with `tasks/get` instead of a call that blocks. Nothing stays open, so
+  client timeouts can no longer cut a wait short; waits last up to 30 minutes by default. If pdfnotator quits
+  meanwhile, the stdio bridge answers for the lost task and tells the agent to wait again. Clients without the
+  extension are served exactly as before.
+- MCP protocol revision 2026-07-28: `server/discover`, version, client and capabilities per request,
+  `resultType` on results, `MCP-Protocol-Version` header check over HTTP.
+
 ## [0.7.1] - 2026-11-20
 
 ### Fixed

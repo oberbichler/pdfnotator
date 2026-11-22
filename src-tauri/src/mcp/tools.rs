@@ -14,7 +14,7 @@ use tokio::sync::Notify;
 
 use std::fmt::Write as _;
 
-use super::text::{compile_note, details_content, feedback_content, text};
+use super::text::{compile_note, details_content, feedback_content, quit_note, text};
 use crate::document::{Document, WaitEnd, Waiter};
 use crate::session::Session;
 
@@ -23,6 +23,8 @@ use crate::session::Session;
 /// An empty result just tells them to call again.
 const DEFAULT_WAIT: Duration = Duration::from_secs(50);
 const MAX_WAIT: Duration = Duration::from_secs(3600);
+/// Default wait when running as an MCP task: the client polls, nothing can time out.
+const TASK_WAIT: Duration = Duration::from_secs(1800);
 
 const PATH_PARAM: &str = "Document path, as returned by open_pdf";
 
@@ -108,6 +110,33 @@ pub fn definitions() -> Value {
             "annotations": { "readOnlyHint": true, "openWorldHint": false }
         }
     ])
+}
+
+/// Whether this `tools/call` runs as an MCP task: only the long
+/// `wait_for_feedback`, and only for clients that declared the extension.
+pub fn runs_as_task(params: &Value) -> bool {
+    params.get("name").and_then(Value::as_str) == Some("wait_for_feedback") && super::tasks::declared(params)
+}
+
+/// Call params for a task: without a timeout of its own the wait is long.
+pub fn task_params(params: &Value) -> Value {
+    let mut params = params.clone();
+    if params.pointer("/arguments/timeout_seconds").is_none() {
+        if !params.get("arguments").is_some_and(Value::is_object) {
+            params["arguments"] = json!({});
+        }
+        params["arguments"]["timeout_seconds"] = TASK_WAIT.as_secs().into();
+    }
+    params
+}
+
+/// Longest time the (task) call can take.
+pub fn task_duration(params: &Value) -> Duration {
+    params
+        .pointer("/arguments/timeout_seconds")
+        .and_then(Value::as_u64)
+        .map_or(DEFAULT_WAIT, Duration::from_secs)
+        .min(MAX_WAIT)
 }
 
 /// Execute a `tools/call` request for the agent session `client`. Tool errors
@@ -210,13 +239,7 @@ async fn wait_for_feedback(doc: &Document, args: &Value, cancel: &Notify, waiter
         .min(MAX_WAIT);
     let items = match doc.wait_for_feedback_as(timeout, cancel, waiter).await {
         Ok(items) => items,
-        Err(WaitEnd::Quit) => {
-            return vec![text(format!(
-                "pdfnotator was quit (e.g. for an update). Call wait_for_feedback again with path \"{}\" — that \
-                 restarts pdfnotator and reopens the document. Stop only if the user said they are done.",
-                doc_path(doc)
-            ))];
-        }
+        Err(WaitEnd::Quit) => return vec![text(quit_note(&doc_path(doc)))],
         Err(WaitEnd::Closed) => {
             return vec![text(format!(
                 "The user closed {} in pdfnotator. The review is finished — stop calling wait_for_feedback.",

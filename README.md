@@ -78,7 +78,9 @@ Several agents can work on several documents at once — each gets its own tab.
 | `reply(message, resolved_ids)` | Answer in the viewer, mark comments done, report compile errors                |
 | `viewer_status()`              | Document, compile status, current page                                         |
 
-Also available via streamable HTTP at `http://127.0.0.1:4747/mcp`.
+Also available via streamable HTTP at `http://127.0.0.1:4747/mcp`. Speaks MCP 2024-11-05 to 2026-07-28; clients
+with the [Tasks extension](https://github.com/modelcontextprotocol/ext-tasks) poll `wait_for_feedback` as a task
+instead of blocking.
 
 </details>
 

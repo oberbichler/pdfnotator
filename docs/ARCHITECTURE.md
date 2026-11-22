@@ -17,18 +17,18 @@ and handles all interaction.
 
 ## Backend (`src-tauri/src`)
 
-| Module        | Responsibility                                                                                          |
-| ------------- | ------------------------------------------------------------------------------------------------------- |
-| `lib.rs`      | CLI parsing (`--mcp`, `--help`, file argument), single instance hand-over, Tauri setup                  |
-| `session.rs`  | All open documents (tabs) and which agent session (`mcp-session-id`) works on which; routes tool calls  |
-| `document.rs` | One document: `notify` file watcher with debounce, `typst watch`, feedback queue, status snapshot       |
-| `feedback.rs` | `FeedbackItem` and `FeedbackQueue` — the hand-over between UI (producer) and agent (blocking consumer)  |
-| `typst.rs`    | Spawns `typst watch`; `LogParser` turns its stderr into `CompileEvent`s (pure and unit tested)          |
-| `mcp/`        | Transport-independent MCP: protocol negotiation, tools, prompts, rendering feedback for the agent       |
-| `http.rs`     | axum router: `POST /mcp` (streamable HTTP, JSON responses) and the REST API, Host/Origin guard          |
-| `bridge.rs`   | stdio transport. Answers `initialize`/`tools/list` locally, forwards tool calls, launches the viewer    |
-| `events.rs`   | `EventSink` trait — the session emits UI events without depending on Tauri (tests use a recording sink) |
-| `commands.rs` | Tauri commands called by the frontend                                                                   |
+| Module        | Responsibility                                                                                                                                              |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib.rs`      | CLI parsing (`--mcp`, `--help`, file argument), single instance hand-over, Tauri setup                                                                      |
+| `session.rs`  | All open documents (tabs) and which agent session (`mcp-session-id`) works on which; routes tool calls                                                      |
+| `document.rs` | One document: `notify` file watcher with debounce, `typst watch`, feedback queue, status snapshot                                                           |
+| `feedback.rs` | `FeedbackItem` and `FeedbackQueue` — the hand-over between UI (producer) and agent (blocking consumer)                                                      |
+| `typst.rs`    | Spawns `typst watch`; `LogParser` turns its stderr into `CompileEvent`s (pure and unit tested)                                                              |
+| `mcp/`        | Transport-independent MCP: protocol negotiation, tools, prompts, tasks, rendering feedback for the agent                                                    |
+| `http.rs`     | axum router: `POST /mcp` (streamable HTTP, JSON responses) and the REST API, Host/Origin guard                                                              |
+| `bridge.rs`   | stdio transport. Answers `initialize`/`server/discover`/`tools/list` locally, forwards tool calls (launching the viewer) and `tasks/*` (never launching it) |
+| `events.rs`   | `EventSink` trait — the session emits UI events without depending on Tauri (tests use a recording sink)                                                     |
+| `commands.rs` | Tauri commands called by the frontend                                                                                                                       |
 
 Design notes:
 
@@ -38,6 +38,10 @@ Design notes:
   comments sent in quick succession.
 - **Tool errors are results.** Failures are returned as `isError: true` content (as recommended by the MCP spec), so
   the agent can read and react to them.
+- **Waits as tasks.** Clients that declare the MCP Tasks extension on a request get `wait_for_feedback` as a task
+  (`mcp/tasks.rs`) and poll `tasks/get`; the wait runs on its own tokio task and can last much longer, because no
+  client timeout applies. Tasks live in the viewer; the bridge remembers the ones it saw created and, if the viewer
+  is gone, answers `tasks/get` with the same "pdfnotator was quit — wait again" result as an interrupted wait.
 - **Seamless reload.** The watcher debounces events and waits for a stable file size before telling the UI.
 - **Many agents, many documents.** The stdio bridge sends its own `mcp-session-id`, so each agent session is bound to
   the document it opened. Because one VS Code window shares a single MCP server process between chats, tool results
