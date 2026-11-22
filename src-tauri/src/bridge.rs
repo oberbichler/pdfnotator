@@ -77,14 +77,21 @@ fn keep_alive(
     write: impl Fn(&Value),
 ) {
     let mut ticks = 0u64;
+    let mut next = std::time::Instant::now() + interval;
     loop {
-        // sleep in short steps so the thread ends soon after the call does
-        for _ in 0..interval.as_millis() / 50 {
+        // sleep in short steps so the thread ends soon after the call does;
+        // a deadline keeps oversleeping from adding up
+        loop {
             if done.load(std::sync::atomic::Ordering::SeqCst) {
                 return;
             }
-            std::thread::sleep(Duration::from_millis(50));
+            let left = next.saturating_duration_since(std::time::Instant::now());
+            if left.is_zero() {
+                break;
+            }
+            std::thread::sleep(left.min(Duration::from_millis(50)));
         }
+        next += interval;
         ticks += 1;
         write(&json!({
             "jsonrpc": "2.0",
@@ -576,14 +583,24 @@ mod tests {
                 });
             })
         };
-        // let one interval pass
-        std::thread::sleep(Duration::from_millis(450));
+        // nothing before the first interval has passed
+        std::thread::sleep(Duration::from_millis(100));
+        assert!(sent.lock().unwrap().is_empty());
+        // wait for the first notification (generously, CI runners can be slow)
+        let deadline = std::time::Instant::now() + Duration::from_secs(10);
+        while sent.lock().unwrap().is_empty() {
+            assert!(std::time::Instant::now() < deadline, "no progress notification");
+            std::thread::sleep(Duration::from_millis(10));
+        }
         done.store(true, std::sync::atomic::Ordering::SeqCst);
         worker.join().unwrap();
-        let sent = sent.lock().unwrap();
-        assert_eq!(sent.len(), 1, "{sent:?}");
-        assert_eq!(sent[0]["method"], "notifications/progress");
-        assert_eq!(sent[0]["params"]["progressToken"], "tok");
+        let first = sent.lock().unwrap().clone();
+        assert_eq!(first[0]["method"], "notifications/progress");
+        assert_eq!(first[0]["params"]["progressToken"], "tok");
+        assert_eq!(first[0]["params"]["progress"], 1);
+        // the thread has ended: nothing more is sent
+        std::thread::sleep(Duration::from_millis(400));
+        assert_eq!(sent.lock().unwrap().len(), first.len());
     }
 
     #[test]
