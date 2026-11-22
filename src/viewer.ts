@@ -113,7 +113,7 @@ export class Viewer {
     const gen = ++this.loadGen;
     const doc = await pdfjs.getDocument({ data, worker: this.worker }).promise;
     if (gen !== this.loadGen) {
-      doc.destroy();
+      void doc.loadingTask.destroy();
       return;
     }
     const sizes: [number, number][] = [];
@@ -122,7 +122,7 @@ export class Viewer {
       sizes.push([vp.width, vp.height]);
     }
     if (gen !== this.loadGen) {
-      doc.destroy();
+      void doc.loadingTask.destroy();
       return;
     }
 
@@ -177,7 +177,7 @@ export class Viewer {
     this.textCache = null;
     await this.renderVisibleNow();
     // old document's canvases are already painted; safe to free it
-    old?.destroy();
+    void old?.loadingTask.destroy();
     this.updateCurrentPage();
     this.hooks.onDocumentLoaded?.(isReload);
   }
@@ -304,7 +304,7 @@ export class Viewer {
     }
     this.pages = [];
     this.visible.clear();
-    void this.doc?.destroy();
+    void this.doc?.loadingTask.destroy();
     this.doc = null;
     this.docKey++;
     this.textCache = null;
