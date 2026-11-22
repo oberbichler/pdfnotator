@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-11-22
+
 ### Changed
 
 - macOS 13 (Ventura) or later is required. The bundled pdf.js 6 needs Safari 18's WebKit, which macOS 11 and 12 do
@@ -139,7 +141,8 @@ All notable changes to this project are documented here. The format is based on
 - User interface in all 24 official EU languages.
 - File associations for `.typ` and `.pdf`, single-instance hand-over from the command line.
 
-[Unreleased]: ../../compare/v0.8.0...HEAD
+[Unreleased]: ../../compare/v0.8.1...HEAD
+[0.8.1]: ../../compare/v0.8.0...v0.8.1
 [0.8.0]: ../../compare/v0.7.1...v0.8.0
 [0.7.1]: ../../compare/v0.7.0...v0.7.1
 [0.7.0]: ../../compare/v0.6.0...v0.7.0
