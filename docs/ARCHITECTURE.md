@@ -39,8 +39,8 @@ Design notes:
 - **Tool errors are results.** Failures are returned as `isError: true` content (as recommended by the MCP spec), so
   the agent can read and react to them.
 - **Waits as tasks.** Clients that declare the MCP Tasks extension on a request get `wait_for_feedback` as a task
-  (`mcp/tasks.rs`) and poll `tasks/get`; the wait runs on its own tokio task and can last much longer, because no
-  client timeout applies. Tasks live in the viewer; the bridge remembers the ones it saw created and, if the viewer
+  (`mcp/tasks.rs`) and poll `tasks/get`; the wait runs on its own tokio task and can last much longer (up to 9 min,
+  below Copilot CLI's 10-min task deadline), because no request timeout applies. Tasks live in the viewer; the bridge remembers the ones it saw created and, if the viewer
   is gone, answers `tasks/get` with the same "pdfnotator was quit — wait again" result as an interrupted wait.
 - **Seamless reload.** The watcher debounces events and waits for a stable file size before telling the UI.
 - **Many agents, many documents.** The stdio bridge sends its own `mcp-session-id`, so each agent session is bound to

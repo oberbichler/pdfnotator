@@ -149,12 +149,21 @@ impl Default for FeedbackQueue {
 }
 
 impl FeedbackQueue {
-    /// Add comments and wake up the waiting agent.
+    /// Add comments and wake up the waiting agent. A comment whose id is
+    /// already queued replaces the queued one, so a double send (or a resend
+    /// before the agent picked it up) reaches the agent once.
     pub fn push(&self, items: impl IntoIterator<Item = FeedbackItem>) {
         let mut queue = self.items.lock().unwrap();
-        let before = queue.len();
-        queue.extend(items);
-        if queue.len() > before {
+        let mut added = false;
+        for item in items {
+            if let Some(queued) = queue.iter_mut().find(|q| q.id == item.id) {
+                *queued = item;
+            } else {
+                queue.push(item);
+            }
+            added = true;
+        }
+        if added {
             drop(queue);
             self.wake();
         }
@@ -324,6 +333,24 @@ mod tests {
         q.push([item("c1"), item("c2")]);
         assert_eq!(ids(&wait(&q, 5).await), ["c1", "c2"]);
         assert_eq!(q.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn a_comment_sent_twice_is_queued_once() {
+        let q = FeedbackQueue::default();
+        q.push([item("c1"), item("c2")]);
+        let mut again = item("c1");
+        again.comment = "edited".into();
+        q.push([again]);
+        q.push([item("c3"), item("c3")]);
+        let WaitOutcome::Items(items) = wait(&q, 5).await else {
+            panic!("expected items")
+        };
+        assert_eq!(
+            items.iter().map(|i| i.id.as_str()).collect::<Vec<_>>(),
+            ["c1", "c2", "c3"]
+        );
+        assert_eq!(items[0].comment, "edited");
     }
 
     #[tokio::test]

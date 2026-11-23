@@ -85,7 +85,7 @@
   <text class="msg" x="575" y="140" text-anchor="middle">task id, at once</text>
   <rect class="wait" x="654" y="152" width="12" height="160" rx="3"/>
   <text class="note" x="676" y="236">waits up to</text>
-  <text class="note" x="676" y="250">30 min</text>
+  <text class="note" x="676" y="250">9 min</text>
 
   <line class="call" x1="497" y1="182" x2="652" y2="182" marker-end="url(#a-call)"/>
   <text class="msg code" x="575" y="176" text-anchor="middle">tasks/get</text>

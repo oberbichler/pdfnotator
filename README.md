@@ -83,8 +83,8 @@ what its MCP client supports:
 ![Without tasks the agent repeats a 50-second call until you comment; with MCP Tasks it gets a task id at once and polls tasks/get every second until your comments arrive](docs/waiting.svg)
 
 - **With [MCP Tasks](https://github.com/modelcontextprotocol/ext-tasks)** the call returns a task id at once and
-  the client polls `tasks/get` until your comments arrive (up to 30 minutes). Nothing stays open, so client
-  timeouts can't cut the wait short.
+  the client polls `tasks/get` until your comments arrive (up to 9 minutes, then the agent waits again; Copilot CLI
+  gives up on a task after 10). Nothing stays open, so client timeouts can't cut the wait short.
 - **Without tasks** each call returns after 50 s with “keep waiting” and the agent calls again. Progress
   notifications keep longer waits alive in clients that honour them.
 

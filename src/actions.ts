@@ -18,20 +18,26 @@ import { toast } from "./ui/toast";
 /** Comments whose screenshot is still being rendered — never sent without it. */
 const capturing = new Set<string>();
 
+/** Drafts being submitted right now (`doc:comment`), so overlapping sends
+ * (e.g. Cmd+Enter reaching both the composer and the global shortcut) don't
+ * deliver a comment twice. */
+const sending = new Set<string>();
+
 /** Send the drafts of one document (default: all documents) to the agent queue. */
 export async function sendDrafts(only?: DocState): Promise<void> {
   for (const doc of only ? [only] : state.docs) {
-    const ready = drafts(doc).filter((c) => !capturing.has(c.id));
+    const key = (id: string) => `${doc.id}:${id}`;
+    const ready = drafts(doc).filter((c) => !capturing.has(c.id) && !sending.has(key(c.id)));
     if (!ready.length) continue;
+    const ids = ready.map((c) => c.id);
+    for (const id of ids) sending.add(key(id));
     try {
       await backend.submitFeedback(doc.id, ready.map(toPayload));
-      setStatus(
-        doc.id,
-        ready.map((c) => c.id),
-        "sent",
-      );
+      setStatus(doc.id, ids, "sent");
     } catch (error) {
       toast(t("error.send", { error: String(error) }), "error");
+    } finally {
+      for (const id of ids) sending.delete(key(id));
     }
   }
 }

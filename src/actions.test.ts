@@ -65,6 +65,14 @@ describe("actions", () => {
     expect(second).toEqual([expect.objectContaining({ id: "c3", image: "iVBOR", preview: "small" })]);
   });
 
+  it("sends a draft once when two sends overlap", async () => {
+    await commitDraft({ id: "c7", kind: "general", page: 0 }, "x");
+    await Promise.all([sendDrafts(), sendDrafts()]);
+    expect(submitFeedback).toHaveBeenCalledTimes(1);
+    expect(sent(0)).toEqual([1, ["c7"]]);
+    expect(doc(1).comments[0]?.status).toBe("sent");
+  });
+
   it("keeps drafts when sending fails", async () => {
     submitFeedback.mockRejectedValueOnce(new Error("offline"));
     await commitDraft({ id: "c5", kind: "general", page: 0 }, "x");
