@@ -23,8 +23,10 @@ use crate::session::Session;
 /// An empty result just tells them to call again.
 const DEFAULT_WAIT: Duration = Duration::from_secs(50);
 const MAX_WAIT: Duration = Duration::from_secs(3600);
-/// Default wait when running as an MCP task: the client polls, nothing can time out.
-const TASK_WAIT: Duration = Duration::from_secs(1800);
+/// Longest wait when running as an MCP task. The client polls, but Copilot
+/// CLI fails a task that is still working after 600 s ("did not complete
+/// before its deadline"), so finish before that with an empty result.
+const TASK_WAIT: Duration = Duration::from_secs(540);
 
 const PATH_PARAM: &str = "Document path, as returned by open_pdf";
 
@@ -134,15 +136,19 @@ pub fn runs_as_task(params: &Value) -> bool {
     params.get("name").and_then(Value::as_str) == Some("wait_for_feedback") && super::tasks::declared(params)
 }
 
-/// Call params for a task: without a timeout of its own the wait is long.
+/// Call params for a task: without a timeout of its own the wait is long,
+/// but never longer than [`TASK_WAIT`].
 pub fn task_params(params: &Value) -> Value {
     let mut params = params.clone();
-    if params.pointer("/arguments/timeout_seconds").is_none() {
-        if !params.get("arguments").is_some_and(Value::is_object) {
-            params["arguments"] = json!({});
-        }
-        params["arguments"]["timeout_seconds"] = TASK_WAIT.as_secs().into();
+    let requested = params
+        .pointer("/arguments/timeout_seconds")
+        .and_then(Value::as_u64);
+    if !params.get("arguments").is_some_and(Value::is_object) {
+        params["arguments"] = json!({});
     }
+    params["arguments"]["timeout_seconds"] = requested
+        .map_or(TASK_WAIT.as_secs(), |s| s.min(TASK_WAIT.as_secs()))
+        .into();
     params
 }
 
@@ -386,6 +392,22 @@ mod tests {
         let p = dir.path().join(file);
         std::fs::write(&p, b"%PDF").unwrap();
         p.canonicalize().unwrap()
+    }
+
+    #[test]
+    fn task_waits_end_before_copilots_deadline() {
+        let timeout = |args: Value| {
+            task_params(&json!({ "name": "wait_for_feedback", "arguments": args }))["arguments"]["timeout_seconds"]
+                .as_u64()
+                .unwrap()
+        };
+        assert_eq!(timeout(json!({})), 540);
+        assert_eq!(timeout(json!({ "timeout_seconds": 3600 })), 540);
+        assert_eq!(timeout(json!({ "timeout_seconds": 30 })), 30);
+        assert_eq!(
+            task_params(&json!({ "name": "wait_for_feedback" }))["arguments"]["timeout_seconds"],
+            540
+        );
     }
 
     #[tokio::test]

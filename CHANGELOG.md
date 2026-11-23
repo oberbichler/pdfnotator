@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+
+- Copilot CLI failed `wait_for_feedback` tasks after 10 minutes without comments ("did not complete before its
+  deadline"), and agents then often stopped waiting. A wait run as a task now ends after at most 9 minutes with
+  the usual "no comments yet, wait again" result.
+- A comment could reach the agent twice: Cmd/Ctrl+Enter in the comment box triggered two overlapping sends. Drafts
+  in flight are no longer sent again, and the queue keeps one entry per comment id (a resend replaces the queued
+  copy).
+
 ## [0.8.2] - 2026-11-22
 
 ### Fixed
