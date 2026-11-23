@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.8.3] - 2026-11-23
+
 ### Fixed
 
 - Copilot CLI failed `wait_for_feedback` tasks after 10 minutes without comments ("did not complete before its
@@ -159,7 +161,8 @@ All notable changes to this project are documented here. The format is based on
 - User interface in all 24 official EU languages.
 - File associations for `.typ` and `.pdf`, single-instance hand-over from the command line.
 
-[Unreleased]: ../../compare/v0.8.2...HEAD
+[Unreleased]: ../../compare/v0.8.3...HEAD
+[0.8.3]: ../../compare/v0.8.2...v0.8.3
 [0.8.2]: ../../compare/v0.8.1...v0.8.2
 [0.8.1]: ../../compare/v0.8.0...v0.8.1
 [0.8.0]: ../../compare/v0.7.1...v0.8.0
